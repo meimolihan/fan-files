@@ -60,6 +60,20 @@ header .menu-button {
   display: none;
 }
 
+@media (hover: none) {
+  header a:not(:focus-visible):not(:active) {
+    background: transparent !important;
+  }
+
+  header .action:not(:active):not(:focus-visible) {
+    background: var(--surfacePrimary) !important;
+  }
+
+  header .action:hover:not(:disabled) {
+    background: transparent !important;
+  }
+}
+
 #more {
   display: none;
 }
@@ -87,8 +101,8 @@ header .menu-button {
   display: flex;
   height: 100%;
   padding: 0em 0.75em;
-  border-radius: 0.3em;
-  transition: 0.1s ease all;
+  border-radius: 0.4em;
+  transition: 0.2s ease all;
   align-items: center;
   z-index: 2;
 }

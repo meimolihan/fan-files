@@ -24,6 +24,12 @@
   background: rgba(127, 127, 127, 0.9);
 }
 
+@media (hover: none) {
+  .shell__divider {
+    background: rgba(127, 127, 127, 0.3) !important;
+  }
+}
+
 .shell__content {
   height: 100%;
   font-family: monospace;

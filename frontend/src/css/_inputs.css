@@ -2,15 +2,20 @@
   background: var(--surfacePrimary);
   color: var(--textSecondary);
   border: 1px solid var(--borderPrimary);
-  border-radius: 0.1em;
+  border-radius: 0.4em;
   padding: 0.5em 1em;
   transition: 0.2s ease all;
   margin: 0;
 }
 
-.input:hover,
-.input:focus {
+.input:hover:not(:disabled),
+.input:focus:not(:disabled) {
   border-color: var(--borderSecondary);
+}
+
+.input:focus-visible:not(:disabled) {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
 }
 
 .input--block {
@@ -24,12 +29,15 @@
   font-family: monospace;
   min-height: 10em;
   resize: vertical;
+  border-radius: 0.4em;
 }
 
 .input--red {
   background: var(--input-red) !important;
+  border-radius: 0.4em !important;
 }
 
 .input--green {
   background: var(--input-green) !important;
+  border-radius: 0.4em !important;
 }

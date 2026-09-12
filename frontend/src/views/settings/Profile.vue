@@ -167,6 +167,7 @@ const updatePassword = async (event: Event) => {
     currentPassword.value === "" ||
     authStore.user === null
   ) {
+    $showError(new Error(t("login.passwordsDontMatch")));
     return;
   }
 

@@ -17,7 +17,7 @@
     rgba(0, 0, 0, 0.12) 0px 1px 2px;
   background: var(--surfacePrimary);
   color: var(--textPrimary);
-  border-radius: 0.2em;
+  border-radius: 0.4em;
   margin: 5px;
   overflow: hidden;
 }
@@ -48,11 +48,18 @@
 
 .share__box__element .button {
   display: inline-block;
+  border-radius: 0.4em;
 }
 
 .share__box__element .button i {
   display: block;
   margin-bottom: 4px;
+  font-size: 3.5em;
+  transition: 0.2s ease transform;
+}
+
+.share__box__element .button:hover:not(:disabled) {
+  transform: scale(1.1);
 }
 
 .share__box__items {
@@ -82,4 +89,14 @@
   padding: 0.5em;
   text-align: center;
   animation: 0.2s opac forwards;
+}
+
+@media (hover: none) {
+  .share__box__element .button:not(:active):not(:focus-visible) {
+    background: var(--surfacePrimary) !important;
+  }
+
+  .share__box__element .button:hover:not(:disabled) {
+    background: transparent !important;
+  }
 }

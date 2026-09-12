@@ -28,14 +28,18 @@ curl -fsSL https://raw.githubusercontent.com/meimolihan/fan-files/main/scripts/i
 ## 本地构建与开发
 
 ```bash
-# 前端
-cd frontend && \
-pnpm install --frozen-lockfile && pnpm run build && cd .. 
+cd /vol1/1000/compose/opencode/workspace/fan-files
+cd frontend && pnpm install --frozen-lockfile && pnpm run build && cd ..
+go build -ldflags='-s -w' -o fan-files .
 
-# 后端（需 Go 1.21+）
-go build -ldflags='-s -w' -o fan-files . && \
-./fan-files --port=8678 --root=/your/files/path
+mkdir -p /var/lib/fan-files
+bash scripts/install.sh -y -p 8678 -d /var/lib/fan-files -r /vol1/1000 --extra-root "存储空间2=/vol2/1000"
 ```
+
+服务器监听:8678
+根存储：/vol1/1000
+额外存储：（/vol2/1000标签：“存储空间2”）
+安装目录：/var/lib/fan-files
 
 ## systemd 服务管理
 

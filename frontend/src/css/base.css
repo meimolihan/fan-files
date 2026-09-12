@@ -22,11 +22,7 @@ a {
 
 img {
   max-width: 100%;
-}
-
-audio,
-video {
-  width: 100%;
+  height: auto;
 }
 
 .mobile-only {
@@ -68,7 +64,7 @@ html[dir="rtl"] nav {
 nav .action {
   width: 100%;
   display: block;
-  border-radius: 0;
+  border-radius: 0.4em;
   font-size: 1.1em;
   padding: 0.5em;
   white-space: nowrap;
@@ -112,8 +108,8 @@ main {
 
 .breadcrumbs a {
   color: inherit;
-  transition: 0.1s ease-in;
-  border-radius: 0.125em;
+  transition: 0.2s ease-in;
+  border-radius: 0.4em;
 }
 
 html[dir="rtl"] .breadcrumbs a {

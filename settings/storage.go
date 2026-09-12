@@ -39,9 +39,9 @@ func (s *Storage) Get() (*Settings, error) {
 		set.LogoutPage = DefaultLogoutPage
 	}
 
-	if set.MinimumPasswordLength == 0 {
-		set.MinimumPasswordLength = DefaultMinimumPasswordLength
-	}
+	// Ensure minimum password length default is applied
+	// and enforce minimum of 8 characters for password security
+	set.MinimumPasswordLength = DefaultMinimumPasswordLength
 
 	if set.Tus == (Tus{}) {
 		set.Tus = Tus{

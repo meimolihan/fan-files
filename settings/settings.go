@@ -12,7 +12,7 @@ import (
 
 const DefaultUsersHomeBasePath = "/users"
 const DefaultLogoutPage = "/login"
-const DefaultMinimumPasswordLength = 12
+const DefaultMinimumPasswordLength = 8
 const DefaultFileMode = 0640
 const DefaultDirMode = 0750
 

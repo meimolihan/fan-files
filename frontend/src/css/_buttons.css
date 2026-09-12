@@ -2,17 +2,22 @@
   outline: 0;
   border: 0;
   padding: 0.5em 1em;
-  border-radius: 0.1em;
+  border-radius: 0.4em;
   cursor: pointer;
   background: var(--blue);
   color: white;
   border: 1px solid var(--divider);
   box-shadow: 0 0 5px var(--divider);
-  transition: 0.1s ease all;
+  transition: 0.2s ease all;
 }
 
-.button:hover {
+.button:hover:not(:disabled) {
   background-color: var(--dark-blue);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
 }
 
 .button--block {
@@ -35,9 +40,10 @@
   box-shadow: 0 0 0;
   border: 0;
   text-transform: uppercase;
+  border-radius: 0.4em;
 }
 
-.button--flat:hover {
+.button--flat:hover:not(:disabled) {
   background: var(--surfaceSecondary);
 }
 
@@ -52,4 +58,9 @@
 .button[disabled] {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.button--block:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
 }

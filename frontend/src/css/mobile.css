@@ -175,6 +175,86 @@
   #search.active {
     display: block;
   }
+
+  /* === Touch device fixes === */
+  @media (hover: none) {
+    *:hover,
+    *:active {
+      background: transparent !important;
+      transform: none !important;
+    }
+
+    .action:hover,
+    .button:hover,
+    .button--flat:hover,
+    .input:hover,
+    .vue-number-input :hover,
+    .shell__divider:hover,
+    .file-list li:hover,
+    .collapsible > label:hover,
+    .file-list li[aria-selected="true"]:not(:focus):hover,
+    .action ul li:hover,
+    #previewer header .action:hover,
+    #previewer .preview .info .button:hover,
+    .credits a:hover,
+    .epub-reader .readerArea .arrow:hover,
+    .dashboard #nav ul li:hover,
+    #listing.mosaic .item:hover {
+      background: transparent !important;
+      transform: none !important;
+    }
+
+    /* Remove hover-based backgrounds and state changes */
+    .action:not(:active):not(:focus-visible),
+    .button:not(:active):not(:focus-visible),
+    .button--flat:not(:active):not(:focus-visible),
+    .input:not(:active):not(:focus-visible) {
+      background: var(--surfacePrimary) !important;
+      color: var(--textSecondary) !important;
+    }
+
+    /* Ensure active/focus states remain visible */
+    .action:focus-visible,
+    .button:focus-visible,
+    .button--flat:focus-visible,
+    .input:focus-visible,
+    .vue-number-input :focus-visible {
+      outline: 2px solid var(--blue);
+      outline-offset: 2px;
+    }
+
+    /* Prevent accidental hover styling on touch */
+    a:not(:focus-visible):not(:active) {
+      background: transparent !important;
+    }
+
+    @media (hover: none) {
+      #previewer header .action:not(:active):not(:focus-visible) {
+        background: var(--surfacePrimary) !important;
+      }
+
+      #previewer header .action:hover:not(:disabled) {
+        background: transparent !important;
+      }
+
+      #previewer .preview .info .button:not(:active):not(:focus-visible) {
+        background: var(--surfacePrimary) !important;
+      }
+
+      #previewer .preview .info .button:hover:not(:disabled) {
+        background: transparent !important;
+      }
+    }
+
+    /* Dropdown hover states should be disabled on touch */
+    #dropdown:not(.active) .action {
+      background: var(--surfacePrimary);
+    }
+
+    #dropdown.active .action {
+      background: var(--surfaceSecondary);
+    }
+  }
 }
 
 @media (max-width: 450px) {
