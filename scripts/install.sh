@@ -45,15 +45,66 @@ skip() {
   printf "  %s %s\n" "${gl_hui}--${reset}" "$1"
 }
 
-print_banner() {
-  local z="$gl_zi" r="$reset" b="$gl_bai" l="$gl_lan"
-  printf '%s\n' \
-    "" \
-    "  ${z}┌─────────────────────────────────────────┐${r}" \
-    "  ${z}│${r}   ${b}fan-files${r}  ${l}文件管理器 · 安装${r}     ${z}│${r}" \
-    "  ${z}└─────────────────────────────────────────┘${r}" \
-    ""
+__warn_box_width() {
+    local s=$1 i c cp width=0
+    local len=${#s}
+    for ((i = 0; i < len; i++)); do
+        c=${s:i:1}
+        printf -v cp '%d' "'$c" 2>/dev/null || cp=63
+        if (( (cp>=0x1100 && cp<=0x115F) || (cp>=0x2E80 && cp<=0x303E) || \
+              (cp>=0x3041 && cp<=0x33FF) || (cp>=0x3400 && cp<=0x4DBF) || \
+              (cp>=0x4E00 && cp<=0x9FFF) || (cp>=0xA000 && cp<=0xA4CF) || \
+              (cp>=0xAC00 && cp<=0xD7A3) || (cp>=0xF900 && cp<=0xFAFF) || \
+              (cp>=0xFE30 && cp<=0xFE6F) || (cp>=0xFF00 && cp<=0xFF60) || \
+              (cp>=0xFFE0 && cp<=0xFFE6) || (cp>=0x1F300 && cp<=0x1F64F) )); then
+                width=$((width + 2))
+            else
+                width=$((width + 1))
+            fi
+    done
+    printf '%d' "$width"
 }
+
+warn_box() {
+    local gl_bai=$'\033[38;5;15m'   # 白色（内容）
+    local gl_zi=$'\033[38;5;13m'    # 洋红（边框）
+    local reset=$'\033[0m'
+
+    local pad=1
+    if [[ $1 =~ ^[0-9]+$ ]]; then
+        pad=$1
+        shift
+    fi
+    local lines=("$@")
+    local max=0 l w
+    for l in "${lines[@]}"; do
+        w=$(__warn_box_width "$l")
+        (( w > max )) && max=$w
+    done
+    local W=$max
+    (( W < 1 )) && W=1
+    local bar
+    printf -v bar '%*s' "$W" ''
+    bar=${bar// /─}
+    printf '%s╭%s╮%s\n' "$gl_zi" "$bar" "$reset"
+    for ((i = 0; i < pad; i++)); do
+        printf '%s│%*s│%s\n' "$gl_zi" "$W" "" "$reset"
+    done
+    for l in "${lines[@]}"; do
+        w=$(__warn_box_width "$l")
+        printf '%s│%s%s%s%*s%s│%s\n' \
+            "$gl_zi" "$gl_bai" "$l" "$reset" \
+            $((W - w)) "" "$gl_zi" "$reset"
+    done
+    for ((i = 0; i < pad; i++)); do
+        printf '%s│%*s│%s\n' "$gl_zi" "$W" "" "$reset"
+    done
+    printf '%s╰%s╯%s\n' "$gl_zi" "$bar" "$reset"
+}
+
+# 测试调用
+warn_box 0  \
+    '     Fan Files 文件管理器 · 安装    ' 
 
 error() { printf "  %s %s\n" "${gl_hong}[错误]${reset}" "$1" >&2; exit 1; }
 
