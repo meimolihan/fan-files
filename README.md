@@ -29,14 +29,12 @@ curl -fsSL https://raw.githubusercontent.com/meimolihan/fan-files/main/scripts/i
 
 ```bash
 # 前端
-cd frontend && pnpm install && CI=true pnpm run build
+cd frontend && \
+pnpm install --frozen-lockfile && pnpm run build && cd .. 
 
 # 后端（需 Go 1.21+）
-export PATH=$PATH:/usr/local/go/bin
-CGO_ENABLED=0 go build \
-  -ldflags="-s -w -X 'github.com/meimolihan/fan-files/version.Version=1.0.0' \
-  -X 'github.com/meimolihan/fan-files/version.CommitSHA=$(git rev-parse HEAD)'" \
-  -o fan-files .
+go build -ldflags='-s -w' -o fan-files . && \
+./fan-files --port=8678 --root=/your/files/path
 ```
 
 ## systemd 服务管理
