@@ -1,0 +1,4 @@
+import { Rendition } from 'epubjs';
+type Direction = 'next' | 'prev';
+export default function mouseListener(document: Document, rendition: Rendition, fn: (dire: Direction) => void): void;
+export {};

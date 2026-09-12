@@ -1,0 +1,6 @@
+/**
+ * @param {Document} document - The document object to add event
+ * @param {Object} rendition - The EPUBJS rendition
+ * @param {Function} fb - The listener function
+ */
+export default function selectListener(document: any, rendition: any, fn: any): void;

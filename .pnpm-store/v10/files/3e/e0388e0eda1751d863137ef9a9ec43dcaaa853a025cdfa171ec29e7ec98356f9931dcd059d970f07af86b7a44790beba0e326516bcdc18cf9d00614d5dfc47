@@ -1,0 +1,36 @@
+import { Rendition, Contents, Location, NavItem } from 'epubjs';
+import { BookOptions } from 'epubjs/types/book';
+import { RenditionOptions } from 'epubjs/types/rendition';
+export interface EpubViewProps {
+    url: string | ArrayBuffer;
+    location?: number | string | Location['start'];
+    tocChanged?: (toc: Array<NavItem>) => void;
+    getRendition?: (rendition: Rendition) => void;
+    handleTextSelected?: (cfiRange: string, contents: Contents) => void;
+    handleKeyPress?: () => void;
+    epubInitOptions?: BookOptions;
+    epubOptions?: RenditionOptions;
+}
+declare var __VLS_1: {}, __VLS_3: {};
+type __VLS_Slots = {} & {
+    loadingView?: (props: typeof __VLS_1) => any;
+} & {
+    errorView?: (props: typeof __VLS_3) => any;
+};
+declare const __VLS_base: import('vue').DefineComponent<EpubViewProps, {
+    nextPage: () => void;
+    prevPage: () => void;
+    setLocation: (href: number | string) => void;
+}, {}, {}, {}, import('vue').ComponentOptionsMixin, import('vue').ComponentOptionsMixin, {
+    "update:location": (args_0: import('epubjs/types/rendition').DisplayedLocation) => any;
+}, string, import('vue').PublicProps, Readonly<EpubViewProps> & Readonly<{
+    "onUpdate:location"?: ((args_0: import('epubjs/types/rendition').DisplayedLocation) => any) | undefined;
+}>, {}, {}, {}, {}, string, import('vue').ComponentProvideOptions, false, {}, any>;
+declare const __VLS_export: __VLS_WithSlots<typeof __VLS_base, __VLS_Slots>;
+declare const _default: typeof __VLS_export;
+export default _default;
+type __VLS_WithSlots<T, S> = T & {
+    new (): {
+        $slots: S;
+    };
+};
