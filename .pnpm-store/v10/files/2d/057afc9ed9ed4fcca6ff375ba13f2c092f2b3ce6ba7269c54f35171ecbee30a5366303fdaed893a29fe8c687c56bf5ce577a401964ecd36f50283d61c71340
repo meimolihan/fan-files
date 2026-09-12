@@ -1,0 +1,221 @@
+
+.reader[data-v-d944dcc1] {
+  position: absolute;
+  inset: 50px 50px 20px;
+}
+.viewHolder[data-v-d944dcc1] {
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
+#viewer[data-v-d944dcc1] {
+  height: 100%;
+}
+
+/* ↓ */
+.tocAreaButton .expansion[data-v-590afc46]::before {
+  transform: rotate(-45deg) translateX(2.5px);
+}
+.tocAreaButton .expansion[data-v-590afc46]::after {
+  transform: rotate(45deg) translateX(-2.5px);
+}
+
+/* ↑ */
+.tocAreaButton .open[data-v-590afc46]::before {
+  transform: rotate(45deg) translateX(2.5px);
+}
+.tocAreaButton .open[data-v-590afc46]::after {
+  transform: rotate(-45deg) translateX(-2.5px);
+}
+.tocAreaButton[data-v-590afc46] {
+  user-select: none;
+  appearance: none;
+  background: none;
+  border: none;
+  display: block;
+  font-family: sans-serif;
+  width: 100%;
+  font-size: 0.9em;
+  text-align: left;
+  padding: 0.9em 1em;
+  border-bottom: 1px solid #ddd;
+  color: #aaa;
+  box-sizing: border-box;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+}
+.tocAreaButton[data-v-590afc46]:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+.tocAreaButton[data-v-590afc46]:active {
+  background: rgba(0, 0, 0, 0.1);
+}
+.active[data-v-590afc46] {
+  color: #1565c0;
+  border-bottom: 2px solid #1565c0;
+}
+
+/* 二级目录 */
+.tocAreaButton .expansion[data-v-590afc46] {
+  cursor: pointer;
+  transform: translateY(-50%);
+  top: 50%;
+  right: 12px;
+  position: absolute;
+  width: 10px;
+  background-color: #a2a5b4;
+  transition: transform 0.3s ease-in-out, top 0.3s ease-in-out;
+}
+.tocAreaButton .expansion[data-v-590afc46]::after,
+.tocAreaButton .expansion[data-v-590afc46]::before {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 2px;
+  background-color: currentcolor;
+  border-radius: 2px;
+  transition: transform 0.3s ease-in-out, top 0.3s ease-in-out;
+}
+
+/* container */
+.container[data-v-10874f24] {
+  overflow: hidden;
+  position: relative;
+  height: 100%;
+}
+.containerExpanded[data-v-10874f24] {
+  transform: translateX(256px);
+}
+.readerArea[data-v-10874f24] {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  width: 100%;
+  background-color: #fff;
+  transition: all 0.3s ease;
+}
+.container .titleArea[data-v-10874f24] {
+  position: absolute;
+  top: 20px;
+  left: 50px;
+  right: 50px;
+  text-align: center;
+  color: #999;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* toc */
+.tocArea[data-v-10874f24] {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 0;
+  width: 256px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: #f2f2f2;
+  padding: 10px 0;
+}
+
+/* 滚动条 */
+.tocArea[data-v-10874f24]::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.tocArea[data-v-10874f24]::-webkit-scrollbar-thumb:vertical {
+  height: 5px;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 0.5rem;
+}
+.tocBackground[data-v-10874f24] {
+  position: absolute;
+  left: 256px;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 1;
+}
+
+/* tocButton */
+.tocButton[data-v-10874f24] {
+  background: none;
+  border: none;
+  width: 32px;
+  height: 32px;
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+.tocButtonBar[data-v-10874f24] {
+  position: absolute;
+  width: 60%;
+  background: #ccc;
+  height: 2px;
+  left: 50%;
+  margin: -1px -30%;
+  top: 50%;
+  transition: all 0.5s ease;
+}
+.tocButtonExpanded[data-v-10874f24] {
+  background: #f2f2f2;
+}
+
+/* 翻页 */
+.arrow[data-v-10874f24] {
+  outline: none;
+  border: none;
+  background: none;
+  position: absolute;
+  top: 50%;
+  margin-top: -32px;
+  font-size: 64px;
+  padding: 0 10px;
+  color: #e2e2e2;
+  font-family: arial, sans-serif;
+  cursor: pointer;
+  user-select: none;
+  appearance: none;
+  font-weight: normal;
+}
+.arrow[data-v-10874f24]:hover {
+  color: #777;
+}
+.arrow[data-v-10874f24]:disabled {
+  cursor: not-allowed;
+  color: #e2e2e2;
+}
+.prev[data-v-10874f24] {
+  left: 1px;
+}
+.next[data-v-10874f24] {
+  right: 1px;
+}
+
+/* loading */
+.loadingView[data-v-10874f24] {
+  position: absolute;
+  top: 50%;
+  left: 10%;
+  right: 10%;
+  color: #ccc;
+  text-align: center;
+  margin-top: -0.5em;
+}
+
+/* errorView */
+.errorView[data-v-10874f24] {
+  position: absolute;
+  top: 50%;
+  left: 10%;
+  right: 10%;
+  color: #c00;
+  text-align: center;
+  margin-top: -.5em;
+}

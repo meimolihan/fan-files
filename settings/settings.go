@@ -64,10 +64,23 @@ type Server struct {
 	TokenExpirationTime    string `json:"tokenExpirationTime"`
 	FollowExternalSymlinks bool   `json:"followExternalSymlinks"`
 
+	// ExtraRoots lists additional real directory trees that are merged into
+	// the virtual root next to Server.Root. Each entry shows up as a top-level
+	// directory alongside the primary root, and the label is displayed in the
+	// storage column of the file listing.
+	ExtraRoots []ExtraRoot `json:"extraRoots"`
+
 	// CaseInsensitiveFs is detected from Root at startup rather than
 	// configured, and tells the rule checker to match paths case-insensitively.
 	// It is never persisted.
 	CaseInsensitiveFs bool `json:"-"`
+}
+
+// ExtraRoot is one of the additional real directory trees exposed at the
+// virtual root.
+type ExtraRoot struct {
+	Path  string `json:"path"`
+	Label string `json:"label"`
 }
 
 // Clean cleans any variables that might need cleaning.

@@ -196,6 +196,9 @@
                 <span>{{ t("files.size") }}</span>
                 <i class="material-icons">{{ sizeIcon }}</i>
               </p>
+              <p class="storage">
+                <span>{{ t("files.location") }}</span>
+              </p>
               <p
                 :class="{ active: modifiedSorted }"
                 class="modified"
@@ -231,6 +234,7 @@
             v-bind:type="item.type"
             v-bind:size="item.size"
             v-bind:path="item.path"
+            v-bind:storage="item.storage"
             @copyPath="copyPathItem"
           >
           </item>
@@ -255,6 +259,7 @@
             v-bind:type="item.type"
             v-bind:size="item.size"
             v-bind:path="item.path"
+            v-bind:storage="item.storage"
             @copyPath="copyPathItem"
           >
           </item>

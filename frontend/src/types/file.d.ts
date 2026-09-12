@@ -9,6 +9,7 @@ interface ResourceBase {
   isSymlink: boolean;
   type: ResourceType;
   url: string;
+  storage?: string; // storage label, e.g. "存储空间1"
 }
 
 interface Resource extends ResourceBase {

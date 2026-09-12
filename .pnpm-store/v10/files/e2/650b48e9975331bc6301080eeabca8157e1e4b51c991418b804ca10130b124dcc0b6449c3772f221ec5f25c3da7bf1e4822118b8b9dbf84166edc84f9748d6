@@ -1,0 +1,31 @@
+import { Rendition, NavItem } from 'epubjs';
+export interface VueReaderProps {
+    url: string | ArrayBuffer;
+    title?: string;
+    showToc?: boolean;
+    tocChanged?: (toc: Array<NavItem>) => void;
+    getRendition?: (rendition: Rendition) => void;
+}
+declare var __VLS_1: {}, __VLS_10: {}, __VLS_13: {};
+type __VLS_Slots = {} & {
+    title?: (props: typeof __VLS_1) => any;
+} & {
+    loadingView?: (props: typeof __VLS_10) => any;
+} & {
+    errorView?: (props: typeof __VLS_13) => any;
+};
+declare const __VLS_base: import('vue').DefineComponent<VueReaderProps, {}, {}, {}, {}, import('vue').ComponentOptionsMixin, import('vue').ComponentOptionsMixin, {
+    progress: (p: number) => any;
+}, string, import('vue').PublicProps, Readonly<VueReaderProps> & Readonly<{
+    onProgress?: ((p: number) => any) | undefined;
+}>, {
+    showToc: boolean;
+}, {}, {}, {}, string, import('vue').ComponentProvideOptions, false, {}, any>;
+declare const __VLS_export: __VLS_WithSlots<typeof __VLS_base, __VLS_Slots>;
+declare const _default: typeof __VLS_export;
+export default _default;
+type __VLS_WithSlots<T, S> = T & {
+    new (): {
+        $slots: S;
+    };
+};

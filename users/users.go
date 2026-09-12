@@ -100,5 +100,15 @@ func (u *User) Clean(baseScope string, followExternalSymlinks bool, fields ...st
 
 // FullPath gets the full path for a user's relative path.
 func (u *User) FullPath(path string) string {
-	return afero.FullBaseFsPath(files.BasePath(u.Fs), path)
+	if base := files.BasePath(u.Fs); base != nil {
+		return afero.FullBaseFsPath(base, path)
+	}
+	if realPathFs, ok := u.Fs.(interface {
+		RealPath(string) (string, error)
+	}); ok {
+		if full, err := realPathFs.RealPath(path); err == nil {
+			return full
+		}
+	}
+	return ""
 }

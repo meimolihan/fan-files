@@ -49,6 +49,7 @@ type FileInfo struct {
 	Content    string            `json:"content,omitempty"`
 	Checksums  map[string]string `json:"checksums,omitempty"`
 	Token      string            `json:"token,omitempty"`
+	Storage    string            `json:"storage,omitempty"`
 	currentDir []os.FileInfo     `json:"-"`
 	Resolution *ImageResolution  `json:"resolution,omitempty"`
 }
@@ -130,6 +131,7 @@ func stat(opts *FileOptions) (*FileInfo, error) {
 
 	// regular file
 	if file != nil && !file.IsSymlink {
+		applyStorageOf(opts.Fs, file)
 		return file, nil
 	}
 
@@ -138,6 +140,7 @@ func stat(opts *FileOptions) (*FileInfo, error) {
 	if err != nil {
 		// can't follow symlink
 		if file != nil && file.IsSymlink {
+			applyStorageOf(opts.Fs, file)
 			return file, nil
 		}
 		return nil, err
@@ -147,6 +150,7 @@ func stat(opts *FileOptions) (*FileInfo, error) {
 	if file != nil && file.IsSymlink {
 		file.Size = info.Size()
 		file.IsDir = info.IsDir()
+		applyStorageOf(opts.Fs, file)
 		return file, nil
 	}
 
@@ -162,7 +166,16 @@ func stat(opts *FileOptions) (*FileInfo, error) {
 		Token:     opts.Token,
 	}
 
+	applyStorageOf(opts.Fs, file)
 	return file, nil
+}
+
+// applyStorageOf records the label of the storage that owns a path, if the
+// filesystem can report it (see MultiFs.StorageOf).
+func applyStorageOf(fs afero.Fs, file *FileInfo) {
+	if storageFs, ok := fs.(interface{ StorageOf(string) string }); ok {
+		file.Storage = storageFs.StorageOf(file.Path)
+	}
 }
 
 // Checksum checksums a given File for a given User, using a specific
@@ -442,6 +455,7 @@ func (i *FileInfo) readListing(checker rules.Checker, readHeader bool, calcImgRe
 			Path:       fPath,
 			currentDir: dir,
 		}
+		applyStorageOf(i.Fs, file)
 
 		if !file.IsDir && strings.HasPrefix(mime.TypeByExtension(file.Extension), "image/") && calcImgRes {
 			resolution, err := calculateImageResolution(file.Fs, file.Path)

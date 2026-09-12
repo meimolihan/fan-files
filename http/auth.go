@@ -3,9 +3,11 @@ package fbhttp
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -14,8 +16,10 @@ import (
 
 	fbAuth "github.com/filebrowser/filebrowser/v2/auth"
 	fberrors "github.com/filebrowser/filebrowser/v2/errors"
+	"github.com/filebrowser/filebrowser/v2/files"
 	"github.com/filebrowser/filebrowser/v2/settings"
 	"github.com/filebrowser/filebrowser/v2/users"
+	"github.com/spf13/afero"
 )
 
 const (
@@ -138,9 +142,45 @@ func withUser(fn handleFunc) handleFunc {
 			return http.StatusInternalServerError, err
 		}
 
+		// Replace the plain single-root filesystem with a merged view: every
+		// user scope of the primary root plus each configured extra root appears
+		// at the virtual root "/", and each entry is annotated with the storage
+		// it lives in. The primary root always wins on name collisions.
+		d.user.Fs = mergeRootsFs(d)
+
 		canonicalizeRequestPath(r)
 		return fn(w, r, d)
 	}
+}
+
+// mergeRootsFs builds the user's filesystem as a MultiFs whose virtual root
+// merges the user's primary scope with every configured extra storage.
+func mergeRootsFs(d *data) afero.Fs {
+	// Derive the primary scope from the filesystem the store already built for
+	// the user (it honours both the server root and the user's scope). This
+	// keeps callers that inject an fs for tests working, since they set the
+	// primary scope outside the settings.Server fields.
+	primary := d.user.FullPath("/")
+	if primary == "" {
+		primary = d.server.Root
+	}
+
+	roots := make([]files.MultiRoot, 0, 1+len(d.server.ExtraRoots))
+	roots = append(roots, files.MultiRoot{
+		Path:  primary,
+		Label: "存储空间1",
+	})
+	for i, extra := range d.server.ExtraRoots {
+		label := extra.Label
+		if label == "" {
+			label = fmt.Sprintf("存储空间%d", i+2)
+		}
+		roots = append(roots, files.MultiRoot{
+			Path:  filepath.Join(extra.Path, filepath.Join("/", d.user.Scope)),
+			Label: label,
+		})
+	}
+	return files.NewMultiFs(roots, d.server.FollowExternalSymlinks)
 }
 
 func withAdmin(fn handleFunc) handleFunc {

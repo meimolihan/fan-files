@@ -1,0 +1,6 @@
+import { default as EpubView } from './EpubView/EpubView.vue';
+import { default as VueReader } from './VueReader/VueReader.vue';
+export * from './EpubView/EpubView.vue';
+export * from './VueReader/VueReader.vue';
+export { EpubView, VueReader };
+export default VueReader;

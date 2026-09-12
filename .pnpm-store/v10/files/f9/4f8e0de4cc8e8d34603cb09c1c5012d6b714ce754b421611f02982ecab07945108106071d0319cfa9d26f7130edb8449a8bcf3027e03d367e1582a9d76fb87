@@ -1,0 +1,7 @@
+/**
+ * Thanks to Xyfir
+ * https://github.com/Xyfir/xyfir-reader
+ */
+type Direction = 'next' | 'prev' | 'up' | 'down';
+export default function swipListener(document: Document, fn: (dire: Direction) => void): void;
+export {};

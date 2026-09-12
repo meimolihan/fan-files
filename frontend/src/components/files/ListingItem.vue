@@ -37,6 +37,8 @@
       <p v-if="isDir" class="size" data-order="-1">&mdash;</p>
       <p v-else class="size" :data-order="humanSize()">{{ humanSize() }}</p>
 
+      <p class="storage">{{ storage || "—" }}</p>
+
       <p class="modified">
         <time :datetime="modified">{{ humanTime() }}</time>
       </p>
@@ -101,6 +103,7 @@ const props = defineProps<{
   index: number;
   readOnly?: boolean;
   path?: string;
+  storage?: string;
 }>();
 
 const emit = defineEmits<{ (e: "copyPath", path: string): void }>();

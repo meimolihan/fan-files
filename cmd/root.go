@@ -323,6 +323,14 @@ func getServerSettings(v *viper.Viper, st *storage.Storage) (*settings.Server, e
 		server.Root = v.GetString("root")
 	}
 
+	if v.IsSet("extraRoots") {
+		roots, err := parseExtraRoots(v.Get("extraRoots"))
+		if err != nil {
+			return nil, err
+		}
+		server.ExtraRoots = roots
+	}
+
 	if v.IsSet("socket") {
 		server.Socket = v.GetString("socket")
 		isSocketSet = true
@@ -400,6 +408,62 @@ func getServerSettings(v *viper.Viper, st *storage.Storage) (*settings.Server, e
 	}
 
 	return server, nil
+}
+
+// parseExtraRoots accepts the various shapes "extraRoots" can take: a string
+// "path,path2:label", a JSON array of strings, or a JSON array of objects with
+// "path" and "label" keys.
+func parseExtraRoots(data interface{}) ([]settings.ExtraRoot, error) {
+	switch d := data.(type) {
+	case nil:
+		return nil, nil
+	case string:
+		return parseExtraRootsCsv(d)
+	case []interface{}:
+		roots := make([]settings.ExtraRoot, 0, len(d))
+		for _, item := range d {
+			switch it := item.(type) {
+			case string:
+				roots = append(roots, parseExtraRootComponent(it))
+			case map[string]interface{}:
+				var root settings.ExtraRoot
+				if p, ok := it["path"].(string); ok {
+					root.Path = p
+				}
+				if l, ok := it["label"].(string); ok {
+					root.Label = l
+				}
+				if root.Path == "" {
+					return nil, fmt.Errorf("extra root entry is missing a \"path\" key")
+				}
+				roots = append(roots, root)
+			default:
+				return nil, fmt.Errorf("invalid extraRoots entry: %v", item)
+			}
+		}
+		return roots, nil
+	default:
+		return nil, fmt.Errorf("invalid extraRoots value of type %T", data)
+	}
+}
+
+func parseExtraRootsCsv(s string) ([]settings.ExtraRoot, error) {
+	roots := []settings.ExtraRoot{}
+	for _, part := range strings.Split(s, ",") {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue
+		}
+		roots = append(roots, parseExtraRootComponent(part))
+	}
+	return roots, nil
+}
+
+func parseExtraRootComponent(s string) settings.ExtraRoot {
+	if i := strings.IndexByte(s, ':'); i >= 0 {
+		return settings.ExtraRoot{Path: s[:i], Label: s[i+1:]}
+	}
+	return settings.ExtraRoot{Path: s}
 }
 
 func setupLog(logMethod string) {
