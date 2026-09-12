@@ -5,7 +5,7 @@ import (
 	gopath "path"
 	"strings"
 
-	"github.com/filebrowser/filebrowser/v2/files"
+	"github.com/meimolihan/fan-files/files"
 )
 
 type absolutePathResponse struct {

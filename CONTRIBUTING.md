@@ -1,4 +1,4 @@
-# Building File Browser
+# Building fan-files
 
 This project is archived on 2026-09-01. Pull requests are not accepted and no further changes are merged. This document is kept as build documentation for anyone wishing to build the project from source.
 
@@ -12,7 +12,7 @@ The backend side of the application is written in [Go](https://golang.org/), whi
 We encourage you to use git to manage your fork. To clone the main repository, just run:
 
 ```bash
-git clone https://github.com/filebrowser/filebrowser
+git clone https://github.com/meimolihan/fan-files
 ```
 
 We use [Taskfile](https://taskfile.dev/) to manage the different processes (building, releasing, etc) automatically.
@@ -53,7 +53,7 @@ If you want to develop the frontend, start a development server which watches fo
 pnpm run dev
 ```
 
-Please note that you need to access File Browser's interface through the development server of the frontend.
+Please note that you need to access fan-files's interface through the development server of the frontend.
 
 ### Backend
 
@@ -63,7 +63,7 @@ First prepare the backend environment by downloading all required dependencies:
 go mod download
 ```
 
-You can now build or run File Browser as any other Go project:
+You can now build or run fan-files as any other Go project:
 
 ```bash
 # Build

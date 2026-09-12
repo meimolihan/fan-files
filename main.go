@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/filebrowser/filebrowser/v2/cmd"
+	"github.com/meimolihan/fan-files/cmd"
 )
 
 func main() {

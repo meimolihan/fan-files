@@ -25,16 +25,16 @@ Also, during the execution of the commands set for those hooks, there will be so
 At this moment, you can edit the commands via the command line interface, using the following commands \(please check the flag `--help` to know more about them\):
 
 ```bash
-filebrowser cmds add before_copy "echo $FILE"
-filebrowser cmds rm before_copy 0
-filebrowser cmds ls
+fan-files cmds add before_copy "echo $FILE"
+fan-files cmds rm before_copy 0
+fan-files cmds ls
 ```
 
 Or you can use the web interface to manage them via **Settings** → **Global Settings**.
 
 ## Interactive Shell
 
-Within File Browser you can toggle the shell (`< >` icon at the top right) and this will open a shell command window at the bottom of the screen. This functionality can be turned on using the environment variable `FB_DISABLE_EXEC=false` or the flag `--disable-exec=false`.
+Within fan-files you can toggle the shell (`< >` icon at the top right) and this will open a shell command window at the bottom of the screen. This functionality can be turned on using the environment variable `FB_DISABLE_EXEC=false` or the flag `--disable-exec=false`.
 
 By default no commands are available as the command list is empty. To enable commands these need to either be done on a per-user basis (including for the Admin user).
 
@@ -42,13 +42,13 @@ You can do this by adding them in Settings > User Management > (edit user) > Com
 
 > [!NOTE]
 > 
-> If using a proxy manager then remember to enable websockets support for the File Browser proxy
+> If using a proxy manager then remember to enable websockets support for the fan-files proxy
 
 > [!NOTE]
 > 
-> If using Docker and you want to add a new command that is not in the base image then you will need to build a custom Docker image using `filebrowser/filebrowser` as a base image.  For example to add 7z:
+> If using Docker and you want to add a new command that is not in the base image then you will need to build a custom Docker image using `fan-files/fan-files` as a base image.  For example to add 7z:
 > 
 > ```docker
-> FROM filebrowser/filebrowser
+> FROM fan-files/fan-files
 > RUN sudo apt install p7zip-full
 > ```

@@ -1,6 +1,6 @@
 {
-  "name": "filebrowser-frontend",
-  "version": "3.0.0",
+  "name": "fan-files-frontend",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "engines": {

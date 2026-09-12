@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/filebrowser/filebrowser/v2/rules"
+	"github.com/meimolihan/fan-files/rules"
 )
 
 const DefaultUsersHomeBasePath = "/users"

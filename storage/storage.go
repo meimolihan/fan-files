@@ -1,10 +1,10 @@
 package storage
 
 import (
-	"github.com/filebrowser/filebrowser/v2/auth"
-	"github.com/filebrowser/filebrowser/v2/settings"
-	"github.com/filebrowser/filebrowser/v2/share"
-	"github.com/filebrowser/filebrowser/v2/users"
+	"github.com/meimolihan/fan-files/auth"
+	"github.com/meimolihan/fan-files/settings"
+	"github.com/meimolihan/fan-files/share"
+	"github.com/meimolihan/fan-files/users"
 )
 
 // Storage is a storage powered by a Backend which makes the necessary

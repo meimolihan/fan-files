@@ -1,0 +1,37 @@
+services:
+  fan-files:
+    container_name: fan-files
+    build: .
+    image: mobufan/fan-files:latest
+    restart: unless-stopped
+    networks:
+      - fan-files
+    ports:
+      - 8678:80
+    volumes:
+      - fan-files:/flux/vault
+    command:
+      - --root=/flux/vault
+    environment:
+      - FB_REDIS_CACHE_URL=redis://default:fan-files@redis:6379 # Use rediss:// for ssl
+
+  redis:
+    container_name: redis
+    image: redis:latest
+    restart: unless-stopped
+    networks:
+      - fan-files
+    command:
+      - sh
+      - -c
+      - |
+        cat > /tmp/users.acl <<EOF
+        user default on >fan-files ~* +@all
+        EOF
+        redis-server --aclfile /tmp/users.acl
+
+networks:
+  fan-files:
+
+volumes:
+  fan-files:

@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/filebrowser/filebrowser/v2/settings"
-	"github.com/filebrowser/filebrowser/v2/users"
+	"github.com/meimolihan/fan-files/settings"
+	"github.com/meimolihan/fan-files/users"
 )
 
 // The ?checksum= branch reads the whole file to compute a digest, so it must be

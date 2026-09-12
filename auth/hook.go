@@ -11,10 +11,10 @@ import (
 	"slices"
 	"strings"
 
-	fberrors "github.com/filebrowser/filebrowser/v2/errors"
-	"github.com/filebrowser/filebrowser/v2/files"
-	"github.com/filebrowser/filebrowser/v2/settings"
-	"github.com/filebrowser/filebrowser/v2/users"
+	fberrors "github.com/meimolihan/fan-files/errors"
+	"github.com/meimolihan/fan-files/files"
+	"github.com/meimolihan/fan-files/settings"
+	"github.com/meimolihan/fan-files/users"
 )
 
 // MethodHookAuth is used to identify hook auth.

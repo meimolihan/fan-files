@@ -1,9 +1,9 @@
 package settings
 
 import (
-	fberrors "github.com/filebrowser/filebrowser/v2/errors"
-	"github.com/filebrowser/filebrowser/v2/rules"
-	"github.com/filebrowser/filebrowser/v2/users"
+	fberrors "github.com/meimolihan/fan-files/errors"
+	"github.com/meimolihan/fan-files/rules"
+	"github.com/meimolihan/fan-files/users"
 )
 
 // StorageBackend is a settings storage backend.

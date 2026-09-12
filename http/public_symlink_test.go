@@ -12,12 +12,12 @@ import (
 	"testing"
 
 	"github.com/asdine/storm/v3"
-	"github.com/filebrowser/filebrowser/v2/files"
-	"github.com/filebrowser/filebrowser/v2/settings"
-	"github.com/filebrowser/filebrowser/v2/share"
-	"github.com/filebrowser/filebrowser/v2/storage"
-	"github.com/filebrowser/filebrowser/v2/storage/bolt"
-	"github.com/filebrowser/filebrowser/v2/users"
+	"github.com/meimolihan/fan-files/files"
+	"github.com/meimolihan/fan-files/settings"
+	"github.com/meimolihan/fan-files/share"
+	"github.com/meimolihan/fan-files/storage"
+	"github.com/meimolihan/fan-files/storage/bolt"
+	"github.com/meimolihan/fan-files/users"
 	"github.com/spf13/afero"
 )
 

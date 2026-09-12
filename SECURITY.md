@@ -27,4 +27,4 @@ Please include, where possible:
 - Steps to reproduce
 - Recommended remediation, if any
 
-No fix will ship for any report: the last planned release has already shipped and no further changes will be merged. Reports may still be published as advisories so that people running File Browser can assess their exposure.
+No fix will ship for any report: the last planned release has already shipped and no further changes will be merged. Reports may still be published as advisories so that people running fan-files can assess their exposure.

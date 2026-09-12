@@ -18,9 +18,9 @@ import (
 	"github.com/spf13/viper"
 	yaml "gopkg.in/yaml.v3"
 
-	"github.com/filebrowser/filebrowser/v2/settings"
-	"github.com/filebrowser/filebrowser/v2/storage"
-	"github.com/filebrowser/filebrowser/v2/storage/bolt"
+	"github.com/meimolihan/fan-files/settings"
+	"github.com/meimolihan/fan-files/storage"
+	"github.com/meimolihan/fan-files/storage/bolt"
 )
 
 const databasePermissions = 0640
@@ -99,8 +99,8 @@ func initViper(cmd *cobra.Command) (*viper.Viper, error) {
 		}
 		v.AddConfigPath(".")
 		v.AddConfigPath(home)
-		v.AddConfigPath("/etc/filebrowser/")
-		v.SetConfigName(".filebrowser")
+		v.AddConfigPath("/etc/fan-files/")
+		v.SetConfigName(".fan-files")
 	} else {
 		v.SetConfigFile(cfgFile)
 	}
@@ -166,9 +166,9 @@ func withViperAndStore(fn func(cmd *cobra.Command, args []string, v *viper.Viper
 		case exists && options.expectsNoDatabase:
 			log.Fatal(path + " already exists")
 		case !exists && !options.expectsNoDatabase && !options.allowsNoDatabase:
-			log.Fatal(path + " does not exist. Please run 'filebrowser config init' first.")
+			log.Fatal(path + " does not exist. Please run 'fan-files config init' first.")
 		case !exists && !options.expectsNoDatabase:
-			log.Println("WARNING: filebrowser.db can't be found. Initialing in " + strings.TrimSuffix(path, "filebrowser.db"))
+			log.Println("WARNING: fan-files.db can't be found. Initialing in " + strings.TrimSuffix(path, "fan-files.db"))
 		}
 
 		log.Println("Using database: " + path)

@@ -13,11 +13,11 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/spf13/afero"
 
-	"github.com/filebrowser/filebrowser/v2/diskcache"
-	"github.com/filebrowser/filebrowser/v2/settings"
-	"github.com/filebrowser/filebrowser/v2/storage"
-	"github.com/filebrowser/filebrowser/v2/storage/bolt"
-	"github.com/filebrowser/filebrowser/v2/users"
+	"github.com/meimolihan/fan-files/diskcache"
+	"github.com/meimolihan/fan-files/settings"
+	"github.com/meimolihan/fan-files/storage"
+	"github.com/meimolihan/fan-files/storage/bolt"
+	"github.com/meimolihan/fan-files/users"
 )
 
 func TestResourceCopyDoesNotDereferenceEscapingSymlink(t *testing.T) {
@@ -236,7 +236,7 @@ func TestResourcePostRunsUploadHooksForDirectories(t *testing.T) {
 	if err := st.Settings.Save(&settings.Settings{
 		Key: key,
 		Commands: map[string][]string{
-			"after_upload": {"filebrowser-hook-command-that-does-not-exist"},
+			"after_upload": {"fan-files-hook-command-that-does-not-exist"},
 		},
 	}); err != nil {
 		t.Fatal(err)

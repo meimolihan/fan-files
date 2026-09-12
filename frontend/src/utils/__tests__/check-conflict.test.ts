@@ -292,7 +292,7 @@ describe("checkConflict", () => {
     expect(conflicts).toHaveLength(0);
   });
 
-  // Regression for #5980: a FileBrowser server running on Windows returns
+  // Regression for #5980: a fan-files server running on Windows returns
   // backslash-separated paths, Without normalizing them, the prefix strip and
   // key lookup never match, so the conflict modal is skipped and the backend
   // returns a bare 409.

@@ -8,11 +8,11 @@ import (
 
 	"github.com/tomasen/realip"
 
-	"github.com/filebrowser/filebrowser/v2/rules"
-	"github.com/filebrowser/filebrowser/v2/runner"
-	"github.com/filebrowser/filebrowser/v2/settings"
-	"github.com/filebrowser/filebrowser/v2/storage"
-	"github.com/filebrowser/filebrowser/v2/users"
+	"github.com/meimolihan/fan-files/rules"
+	"github.com/meimolihan/fan-files/runner"
+	"github.com/meimolihan/fan-files/settings"
+	"github.com/meimolihan/fan-files/storage"
+	"github.com/meimolihan/fan-files/users"
 )
 
 type handleFunc func(w http.ResponseWriter, r *http.Request, d *data) (int, error)

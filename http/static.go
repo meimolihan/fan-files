@@ -15,10 +15,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/filebrowser/filebrowser/v2/auth"
-	"github.com/filebrowser/filebrowser/v2/settings"
-	"github.com/filebrowser/filebrowser/v2/storage"
-	"github.com/filebrowser/filebrowser/v2/version"
+	"github.com/meimolihan/fan-files/auth"
+	"github.com/meimolihan/fan-files/settings"
+	"github.com/meimolihan/fan-files/storage"
+	"github.com/meimolihan/fan-files/version"
 )
 
 func handleWithStaticData(w http.ResponseWriter, _ *http.Request, d *data, fSys fs.FS, file, contentType string) (int, error) {

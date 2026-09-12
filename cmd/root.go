@@ -23,14 +23,14 @@ import (
 	"github.com/spf13/viper"
 	lumberjack "gopkg.in/natefinch/lumberjack.v2"
 
-	"github.com/filebrowser/filebrowser/v2/auth"
-	"github.com/filebrowser/filebrowser/v2/diskcache"
-	"github.com/filebrowser/filebrowser/v2/frontend"
-	fbhttp "github.com/filebrowser/filebrowser/v2/http"
-	"github.com/filebrowser/filebrowser/v2/img"
-	"github.com/filebrowser/filebrowser/v2/settings"
-	"github.com/filebrowser/filebrowser/v2/storage"
-	"github.com/filebrowser/filebrowser/v2/users"
+	"github.com/meimolihan/fan-files/auth"
+	"github.com/meimolihan/fan-files/diskcache"
+	"github.com/meimolihan/fan-files/frontend"
+	fbhttp "github.com/meimolihan/fan-files/http"
+	"github.com/meimolihan/fan-files/img"
+	"github.com/meimolihan/fan-files/settings"
+	"github.com/meimolihan/fan-files/storage"
+	"github.com/meimolihan/fan-files/users"
 )
 
 var (
@@ -76,12 +76,12 @@ func init() {
 
 	cobra.MousetrapHelpText = ""
 
-	rootCmd.SetVersionTemplate("File Browser version {{printf \"%s\" .Version}}\n")
+	rootCmd.SetVersionTemplate("fan-files version {{printf \"%s\" .Version}}\n")
 
 	// Flags available across the whole program
 	persistent := rootCmd.PersistentFlags()
 	persistent.StringP("config", "c", "", "config file path")
-	persistent.StringP("database", "d", "./filebrowser.db", "database path")
+	persistent.StringP("database", "d", "./fan-files.db", "database path")
 
 	// Runtime flags for the root command
 	flags := rootCmd.Flags()
@@ -116,13 +116,13 @@ func addServerFlags(flags *pflag.FlagSet) {
 }
 
 var rootCmd = &cobra.Command{
-	Use:   "filebrowser",
+	Use:   "fan-files",
 	Short: "A stylish web-based file browser",
-	Long: `File Browser CLI lets you create the database to use with File Browser,
+	Long: `fan-files CLI lets you create the database to use with fan-files,
 manage your users and all the configurations without accessing the
 web interface.
 
-If you've never run File Browser, you'll need to have a database for
+If you've never run fan-files, you'll need to have a database for
 it. Don't worry: you don't need to setup a separate database server.
 We're using Bolt DB which is a single file database and all managed
 by ourselves.
@@ -133,12 +133,12 @@ The environment variables are prefixed by "FB_" followed by the flag name in
 UPPER_SNAKE_CASE. For example, the flag "--disablePreviewResize" is available
 as FB_DISABLE_PREVIEW_RESIZE.
 
-If "--config" is not specified, File Browser will look for a configuration
-file named .filebrowser.{json, toml, yaml, yml} in the following directories:
+If "--config" is not specified, fan-files will look for a configuration
+file named .fan-files.{json, toml, yaml, yml} in the following directories:
 
 - ./
 - $HOME/
-- /etc/filebrowser/
+- /etc/fan-files/
 
 **Note:** Only the options listed below can be set via the config file or
 environment variables. Other configuration options live exclusively in the
@@ -153,7 +153,7 @@ The precedence of the configuration values are as follows:
 - Database values
 - Defaults
 
-Also, if the database path doesn't exist, File Browser will enter into
+Also, if the database path doesn't exist, fan-files will enter into
 the quick setup mode and a new database will be bootstrapped and a new
 user created with the credentials from options "username" and "password".`,
 	RunE: withViperAndStore(func(_ *cobra.Command, _ []string, v *viper.Viper, st *store) error {
@@ -191,11 +191,6 @@ user created with the credentials from options "username" and "password".`,
 			return err
 		}
 		setupLog(server.Log)
-
-		log.Println("NOTICE: File Browser is being wound down.")
-		log.Println("NOTICE: The project is archived on 2026-09-01, after which there will be no")
-		log.Println("NOTICE: further releases and no security fixes. Known unfixed issues are at")
-		log.Println("NOTICE: https://github.com/filebrowser/filebrowser/security/advisories")
 
 		root, err := filepath.Abs(server.Root)
 		if err != nil {
@@ -402,7 +397,7 @@ func getServerSettings(v *viper.Viper, st *storage.Storage) (*settings.Server, e
 		if !set.CreateUserDir && scopeIsRoot {
 			log.Println("WARNING: Signup is enabled without createUserDir and the default scope is")
 			log.Println("WARNING: the server root, so every self-registered user can read, modify and")
-			log.Println("WARNING: delete all files File Browser serves, including other users' files.")
+			log.Println("WARNING: delete all files fan-files serves, including other users' files.")
 			log.Println("WARNING: Enable createUserDir, or set a default scope other than the root.")
 		}
 	}

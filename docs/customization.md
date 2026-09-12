@@ -1,10 +1,10 @@
 # Customization
 
-You can customize the styles, branding and icons of your File Browser instance in order to give it a personal touch.
+You can customize the styles, branding and icons of your fan-files instance in order to give it a personal touch.
 
 ## Custom Branding
 
-You can customize File Browser to use your own branding. This includes the following:
+You can customize fan-files to use your own branding. This includes the following:
 
 - **Name**: the name of the instance that shows up on the tab title, login pages, and some other places.
 - **Disable External Links**: disables all external links, except to the documentation.
@@ -13,10 +13,10 @@ You can customize File Browser to use your own branding. This includes the follo
   - `custom.css`, containing a global stylesheet to apply to all users.
   - `img`, a directory which can replace all the [default logotypes](https://github.com/filebrowser/filebrowser/tree/master/frontend/public/img) from the application.
 
-This can be configured by the administrator user, under **Settings → Global Settings**. You can also update the configuration directly using the [CLI](cli/filebrowser-config-set.md):
+This can be configured by the administrator user, under **Settings → Global Settings**. You can also update the configuration directly using the [CLI](cli/fan-files-config-set.md):
 
 ```sh
-filebrowser config set --branding.name "My Name" \
+fan-files config set --branding.name "My Name" \
   --branding.files "/abs/path/to/my/dir" \
   --branding.disableExternal
 ```

@@ -3,9 +3,9 @@ package users
 import (
 	"path/filepath"
 
-	fberrors "github.com/filebrowser/filebrowser/v2/errors"
-	"github.com/filebrowser/filebrowser/v2/files"
-	"github.com/filebrowser/filebrowser/v2/rules"
+	fberrors "github.com/meimolihan/fan-files/errors"
+	"github.com/meimolihan/fan-files/files"
+	"github.com/meimolihan/fan-files/rules"
 	"github.com/spf13/afero"
 )
 

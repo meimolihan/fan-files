@@ -11,9 +11,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/filebrowser/filebrowser/v2/auth"
-	fberrors "github.com/filebrowser/filebrowser/v2/errors"
-	"github.com/filebrowser/filebrowser/v2/settings"
+	"github.com/meimolihan/fan-files/auth"
+	fberrors "github.com/meimolihan/fan-files/errors"
+	"github.com/meimolihan/fan-files/settings"
 )
 
 func init() {
@@ -51,7 +51,7 @@ func addConfigFlags(flags *pflag.FlagSet) {
 	flags.String("recaptcha.key", "", "ReCaptcha site key")
 	flags.String("recaptcha.secret", "", "ReCaptcha secret")
 
-	flags.String("branding.name", "", "replace 'File Browser' by this name")
+	flags.String("branding.name", "", "replace 'fan-files' by this name")
 	flags.String("branding.theme", "", "set the theme")
 	flags.String("branding.color", "", "set the theme color")
 	flags.String("branding.files", "", "path to directory with images and custom styles")

@@ -2,7 +2,7 @@ export {};
 
 declare global {
   interface Window {
-    FileBrowser: any;
+    fanFiles: any;
     grecaptcha: any;
   }
 

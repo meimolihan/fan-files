@@ -27,7 +27,7 @@ var docsCmd = &cobra.Command{
 			return err
 		}
 
-		tempDir, err := os.MkdirTemp(os.TempDir(), "filebrowser-docs-")
+		tempDir, err := os.MkdirTemp(os.TempDir(), "fan-files-docs-")
 		if err != nil {
 			return err
 		}
@@ -50,7 +50,7 @@ var docsCmd = &cobra.Command{
 		}
 
 		headerRegex := regexp.MustCompile(`(?m)^(##)(.*)$`)
-		linkRegex := regexp.MustCompile(`\(filebrowser(.*)\.md\)`)
+		linkRegex := regexp.MustCompile(`\(fan-files(.*)\.md\)`)
 
 		fmt.Println("Generated Documents:")
 

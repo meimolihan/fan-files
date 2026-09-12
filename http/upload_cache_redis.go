@@ -36,7 +36,7 @@ func newRedisUploadCache(redisURL string) (*redisUploadCache, error) {
 }
 
 func (c *redisUploadCache) filePathKey(filePath string) string {
-	return "filebrowser:upload:" + filePath
+	return "fan-files:upload:" + filePath
 }
 
 // Register stores the upload length. The scoped removal callback is unused by

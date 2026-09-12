@@ -14,11 +14,11 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/golang-jwt/jwt/v5/request"
 
-	fbAuth "github.com/filebrowser/filebrowser/v2/auth"
-	fberrors "github.com/filebrowser/filebrowser/v2/errors"
-	"github.com/filebrowser/filebrowser/v2/files"
-	"github.com/filebrowser/filebrowser/v2/settings"
-	"github.com/filebrowser/filebrowser/v2/users"
+	fbAuth "github.com/meimolihan/fan-files/auth"
+	fberrors "github.com/meimolihan/fan-files/errors"
+	"github.com/meimolihan/fan-files/files"
+	"github.com/meimolihan/fan-files/settings"
+	"github.com/meimolihan/fan-files/users"
 	"github.com/spf13/afero"
 )
 
@@ -308,7 +308,7 @@ func printToken(w http.ResponseWriter, _ *http.Request, d *data, user *users.Use
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(tokenExpirationTime)),
-			Issuer:    "File Browser",
+			Issuer:    "fan-files",
 		},
 	}
 
