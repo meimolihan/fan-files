@@ -8,6 +8,7 @@
 - **零依赖静态二进制**：单文件部署，无运行时依赖
 - **远程一键安装**：`curl | bash` 无需本地构建，自动从 Release 下载对应架构二进制
 - **保留数据升级**：卸载保留 `/var/lib/fan-files`，重装即可恢复用户/设置/密码
+- **备份与还原**：内置备份/还原功能，支持 Web UI、CLI 脚本、API 调用，自动清理旧备份
 
 ## 快速开始（远程安装）
 
@@ -66,6 +67,61 @@ curl -fsSL https://raw.githubusercontent.com/meimolihan/fan-files/main/scripts/u
   | bash -s -- -y --keep-data
 ```
 
+## 备份与还原
+
+fan-files 内置完整的备份/还原机制，支持三种方式：
+
+### 1. Web UI（推荐，管理员可见）
+登录后进入 **设置 → 备份与还原**，可：
+- 查看备份列表（名称、大小、时间）
+- 一键创建备份（自动停止服务、打包、清理旧备份、重启服务）
+- 选择备份文件还原（自动停止服务、解包、重启服务）
+- 删除不需要的备份
+- 实时显示任务进度
+
+### 2. CLI 脚本（适合定时任务）
+```bash
+# 创建备份（保留最近 6 份，自定义目录）
+bash scripts/fan-files_backup.sh 6 /vol2/1000/file/backup/fan-files-backup
+
+# 还原最新备份（默认目录）
+bash scripts/fan-files_recover.sh
+
+# 还原指定目录最新备份
+bash scripts/fan-files_recover.sh /path/to/backup
+```
+
+脚本特性：
+- 自动读取 `/etc/fan-files.conf` 获取数据目录
+- 停止服务 → 打包/解包 → 清理旧备份 → 启动服务
+- 保留份数可配置，默认 6 份
+- 彩色输出，进度可视
+
+### 3. REST API（适合自动化集成）
+```bash
+# 获取备份列表
+curl -H "X-Auth: $TOKEN" http://localhost:8678/api/backup
+
+# 创建备份（异步）
+curl -X POST -H "X-Auth: $TOKEN" -H "Content-Type: application/json" \
+  -d '{"keepNum":6,"async":true}' http://localhost:8678/api/backup
+
+# 还原指定备份
+curl -X POST -H "X-Auth: $TOKEN" -H "Content-Type: application/json" \
+  -d '{"file":"FanFiles-2026-09-12_18-30-00.tar.gz"}' http://localhost:8678/api/backup/restore
+
+# 查询任务状态
+curl -H "X-Auth: $TOKEN" http://localhost:8678/api/backup/job/backup-xxx
+
+# 删除备份
+curl -X DELETE -H "X-Auth: $TOKEN" http://localhost:8678/api/backup/FanFiles-xxx.tar.gz
+```
+
+### 备份文件格式
+- 存放目录：`{数据目录}/backup/`（默认 `/var/lib/fan-files/backup/`，可配置）
+- 文件名：`FanFiles-YYYY-MM-DD_HH-MM-SS.tar.gz`
+- 包含：SQLite 数据库、配置文件、用户数据等
+
 ## 配置文件
 
 生成位置：`/etc/fan-files/settings.json`（安装时自动生成，亦可手动编辑后 `systemctl restart fan-files`）
@@ -107,6 +163,33 @@ curl -fsSL https://raw.githubusercontent.com/meimolihan/fan-files/main/scripts/u
 - **禁用命令执行器**：默认关闭，不要开启 `--disable-exec=false`
 - **以非特权用户、容器运行**：仅挂载需服务的目录
 - **JWT 会话不可撤销**：密码修改/登出不会使已签发 token 失效，泄露视为有效至过期
+
+## 常用命令速查表
+
+| 场景 | 命令 |
+|------|------|
+| **安装** | `bash scripts/install.sh -y -p 8678 -d /var/lib/fan-files -r /vol1/1000 --extra-root "存储空间2=/vol2/1000"` |
+| **远程安装** | `curl -fsSL https://raw.githubusercontent.com/meimolihan/fan-files/main/scripts/install.sh \| bash -s -- -y -p 8678 -d /var/lib/fan-files -r /vol1/1000 --extra-root "存储空间2=/vol2/1000"` |
+| **交互式安装** | `bash scripts/install.sh` |
+| **查看服务状态** | `systemctl status fan-files` |
+| **重启服务** | `systemctl restart fan-files` |
+| **停止服务** | `systemctl stop fan-files` |
+| **实时日志** | `journalctl -u fan-files -f` |
+| **查看最近 50 行日志** | `journalctl -u fan-files -n 50` |
+| **卸载（保留数据）** | `bash scripts/uninstall.sh -y --keep-data` |
+| **卸载（删除数据）** | `bash scripts/uninstall.sh -y --purge` |
+| **远程卸载** | `curl -fsSL https://raw.githubusercontent.com/meimolihan/fan-files/main/scripts/uninstall.sh \| bash -s -- -y --keep-data` |
+| **创建备份（CLI，保留 6 份）** | `bash scripts/fan-files_backup.sh 6 /vol2/1000/file/backup/fan-files-backup` |
+| **还原最新备份（CLI）** | `bash scripts/fan-files_recover.sh` |
+| **还原指定目录备份（CLI）** | `bash scripts/fan-files_recover.sh /path/to/backup` |
+| **查看备份列表（API）** | `curl -H "X-Auth: $TOKEN" http://localhost:8678/api/backup` |
+| **创建备份（API，异步）** | `curl -X POST -H "X-Auth: $TOKEN" -H "Content-Type: application/json" -d '{"keepNum":6,"async":true}' http://localhost:8678/api/backup` |
+| **还原指定备份（API）** | `curl -X POST -H "X-Auth: $TOKEN" -H "Content-Type: application/json" -d '{"file":"FanFiles-xxx.tar.gz"}' http://localhost:8678/api/backup/restore` |
+| **查询备份任务状态（API）** | `curl -H "X-Auth: $TOKEN" http://localhost:8678/api/backup/job/backup-xxx` |
+| **删除备份（API）** | `curl -X DELETE -H "X-Auth: $TOKEN" http://localhost:8678/api/backup/FanFiles-xxx.tar.gz` |
+| **构建并发布** | `./scripts/build-and-push.sh v1.0.1 --yes` |
+| **前端构建** | `cd frontend && pnpm install && CI=true pnpm run build` |
+| **后端构建** | `export PATH=$PATH:/usr/local/go/bin && CGO_ENABLED=0 go build -ldflags="-s -w -X 'github.com/meimolihan/fan-files/version.Version=1.0.0' -X 'github.com/meimolihan/fan-files/version.CommitSHA=$(git rev-parse HEAD)'" -o fan-files .` |
 
 ## 许可证
 

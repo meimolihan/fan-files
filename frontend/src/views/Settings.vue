@@ -30,6 +30,11 @@
               {{ t("settings.userManagement") }}
             </li></router-link
           >
+          <router-link to="/settings/backup" v-if="user?.perm.admin"
+            ><li :class="{ active: $route.path === '/settings/backup' }">
+              {{ t("backup.backupRestore") }}
+            </li></router-link
+          >
         </ul>
       </div>
     </div>
