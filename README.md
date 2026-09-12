@@ -1,36 +1,114 @@
-> [!WARNING]
-> 
-> **fan-files is archived on 2026-09-01**. The last planned release has already shipped. There will be no further releases, bug fixes, or security fixes.   
+# fan-files
 
-<p align="center">
-  <img src="./branding/banner.png" width="550"/>
-</p>
+轻量级文件管理器，基于 filebrowser 二次开发。支持**多根存储合并**、Web 界面上传/下载/预览/编辑，部署即用。
 
-fan-files provides a file managing interface within a specified directory and it can be used to upload, delete, preview and edit your files. It is a **create-your-own-cloud**-kind of software where you can just install it on your server, direct it to a path and access your files through a nice web interface.
+## 特性
+- **多根合并**：主存储根 + 多个附加存储根，首页合并列表，`storage` 字段区分来源
+- **原生 systemd**：一键安装/卸载/升级，开机自启，日志统一管理
+- **零依赖静态二进制**：单文件部署，无运行时依赖
+- **远程一键安装**：`curl | bash` 无需本地构建，自动从 Release 下载对应架构二进制
+- **保留数据升级**：卸载保留 `/var/lib/fan-files`，重装即可恢复用户/设置/密码
 
-**Background:** [Goodbye fan-files, for Real This Time](https://hacdias.com/2026/07/28/fan-files/), July 2026.
+## 快速开始（远程安装）
 
-## Security
+```bash
+# 静默安装（指定端口、数据目录、主存储、附加存储）
+curl -fsSL https://raw.githubusercontent.com/meimolihan/fan-files/main/scripts/install.sh \
+  | bash -s -- -y -p 8678 -d /var/lib/fan-files -r /vol1/1000 \
+      --extra-root "存储空间2=/vol2/1000"
 
-Published advisories are listed under [security advisories](https://github.com/filebrowser/filebrowser/security/advisories),
-and reporting instructions are in [SECURITY.md](SECURITY.md). Two known issue classes
-remain unaddressed and will not be fixed:
+# 交互式安装（会提示端口、数据目录、存储根）
+curl -fsSL https://raw.githubusercontent.com/meimolihan/fan-files/main/scripts/install.sh | bash
+```
 
-- **Command execution, runner, and hooks.** This feature is plagued with vulnerabilities across many published advisories, and would need a full rewrite to be made safe. It is disabled by default; if you re-enable it with `--disable-exec=false`, treat the ability to run commands as equivalent to shell access on the host. Background: [#5199](https://github.com/filebrowser/filebrowser/issues/5199).
-- **Session and JWT handling.** Sessions are self-contained JWTs rather than server-side identifiers, so they cannot be revoked, which means that logout, password changes, and renewal leave previously issued tokens valid until they expire, and the same refresh token can be redeemed repeatedly. Assume a leaked token is valid until expiry. Background: [#5216](https://github.com/filebrowser/filebrowser/issues/5216).
+> **前置条件**：脚本已推送至 `main` 分支，且已发布 Release（含 `fan-files_linux_amd64` 产物）。  
+> 首次部署需执行：`./scripts/build-and-push.sh v1.0.0 --yes`（构建、打 tag、创建 Release）。
 
-If you keep running fan-files, treat it as unmaintained software:
+## 本地构建与开发
 
-- **Do not expose it directly to the internet.** Put it behind a reverse proxy that terminates TLS and performs its own authentication.
-- **Keep the command runner disabled.** It is off by default, so leave it off. See [#5199](https://github.com/filebrowser/filebrowser/issues/5199) and [`docs/command-execution.md`](docs/command-execution.md).
-- **Run it unprivileged, inside a container**, with only the directory you intend to serve mounted into it.
+```bash
+# 前端
+cd frontend && pnpm install && CI=true pnpm run build
 
-## Documentation
+# 后端（需 Go 1.21+）
+export PATH=$PATH:/usr/local/go/bin
+CGO_ENABLED=0 go build \
+  -ldflags="-s -w -X 'github.com/meimolihan/fan-files/version.Version=1.0.0' \
+  -X 'github.com/meimolihan/fan-files/version.CommitSHA=$(git rev-parse HEAD)'" \
+  -o fan-files .
+```
 
-Documentation on how to install, configure, and build this project lives in [`docs`](docs) in this repository.
+## systemd 服务管理
 
-[CONTRIBUTING.md](CONTRIBUTING.md) documents how to build and develop the project, which remains useful to anyone forking it.
+安装脚本会自动创建并启用 `fan-files.service`，常用命令：
 
-## License
+| 操作 | 命令 |
+|------|------|
+| 查看状态 | `systemctl status fan-files` |
+| 重启服务 | `systemctl restart fan-files` |
+| 停止服务 | `systemctl stop fan-files` |
+| 实时日志 | `journalctl -u fan-files -f` |
+| 最近 50 行 | `journalctl -u fan-files -n 50` |
+| 开机自启 | `systemctl enable fan-files` |
+| 禁用自启 | `systemctl disable fan-files` |
 
-[Apache License 2.0](LICENSE) © fan-files Contributors
+## 卸载
+
+```bash
+# 保留数据目录（推荐，重装即可恢复）
+bash scripts/uninstall.sh -y --keep-data
+
+# 连数据库一起删除
+bash scripts/uninstall.sh -y --purge
+
+# 远程卸载
+curl -fsSL https://raw.githubusercontent.com/meimolihan/fan-files/main/scripts/uninstall.sh \
+  | bash -s -- -y --keep-data
+```
+
+## 配置文件
+
+生成位置：`/etc/fan-files/settings.json`（安装时自动生成，亦可手动编辑后 `systemctl restart fan-files`）
+
+```json
+{
+  "port": 8678,
+  "baseURL": "",
+  "address": "0.0.0.0",
+  "log": "stdout",
+  "database": "/var/lib/fan-files/fan-files.db",
+  "root": "/vol1/1000",
+  "extraRoots": [
+    {"path": "/vol2/1000", "label": "存储空间2"}
+  ]
+}
+```
+
+关键字段：
+- `port`：监听端口（默认 8678）
+- `root`：主存储根目录
+- `extraRoots`：附加存储根数组，每项含 `path` 绝对路径与 `label` 显示名
+- `database`：SQLite 数据库路径（含用户、设置、分享链接等）
+
+## 发布流程
+
+```bash
+# 交互式：输入版本号，确认后构建、提交、打 tag、推送、创建 Release
+./scripts/build-and-push.sh v1.0.1
+
+# 全自动（需先 gh auth login）
+./scripts/build-and-push.sh v1.0.1 --yes
+```
+
+产物：`bin/fan-files`、`bin/fan-files_linux_amd64`（上传至 GitHub Release）。
+
+## 安全建议
+- **不要直接暴露公网**：置于反向代理（Nginx/Caddy/Traefik）后，由代理终结 TLS 并做认证
+- **禁用命令执行器**：默认关闭，不要开启 `--disable-exec=false`
+- **以非特权用户、容器运行**：仅挂载需服务的目录
+- **JWT 会话不可撤销**：密码修改/登出不会使已签发 token 失效，泄露视为有效至过期
+
+## 许可证
+
+[Apache License 2.0](LICENSE) © fan-files Contributors  
+（原项目：File Browser Contributors）
