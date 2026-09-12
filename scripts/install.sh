@@ -102,9 +102,7 @@ warn_box() {
     printf '%s╰%s╯%s\n' "$gl_zi" "$bar" "$reset"
 }
 
-# 测试调用
-warn_box 0  \
-    '     Fan Files 文件管理器 · 安装    ' 
+warn_box 0  '     Fan Files 文件管理器 · 安装    ' 
 
 error() { printf "  %s %s\n" "${gl_hong}[错误]${reset}" "$1" >&2; exit 1; }
 
@@ -280,7 +278,8 @@ if [ -n "${EXTRA_ROOTS}" ] && [ "${EXTRA_COUNT}" -eq 0 ]; then
   EXTRA_COUNT=$(printf '%s' "${EXTRA_ROOTS}" | wc -w | tr -d ' ')
 fi
 
-print_banner
+warn_box 0  '     Fan Files 文件管理器 · 安装    ' 
+
 sep_line
 section "安装信息"
 printf "  %-14s %s\n" "${gl_lan}系统${reset}" "$(uname -s) $(uname -m)"
