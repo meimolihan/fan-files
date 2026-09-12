@@ -102,8 +102,6 @@ warn_box() {
     printf '%s╰%s╯%s\n' "$gl_zi" "$bar" "$reset"
 }
 
-warn_box 0  '     Fan Files 文件管理器 · 安装    ' 
-
 error() { printf "  %s %s\n" "${gl_hong}[错误]${reset}" "$1" >&2; exit 1; }
 
 # ================== customize me ==================
