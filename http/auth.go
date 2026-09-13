@@ -153,9 +153,10 @@ func withUser(fn handleFunc) handleFunc {
 	}
 }
 
-// mergeRootsFs builds the user's filesystem as a MultiFs whose virtual root
-// merges the user's primary scope with every configured extra storage.
-func mergeRootsFs(d *data) afero.Fs {
+// storageRoots builds the ordered list of every storage root visible at the
+// virtual root: the user's primary scope first, then each configured extra
+// storage (e.g. "存储空间1", "存储空间2", …).
+func storageRoots(d *data) []files.MultiRoot {
 	// Derive the primary scope from the filesystem the store already built for
 	// the user (it honours both the server root and the user's scope). This
 	// keeps callers that inject an fs for tests working, since they set the
@@ -180,8 +181,26 @@ func mergeRootsFs(d *data) afero.Fs {
 			Label: label,
 		})
 	}
-	return files.NewMultiFs(roots, d.server.FollowExternalSymlinks)
+	return roots
 }
+
+// mergeRootsFs builds the user's filesystem as a MultiFs whose virtual root
+// merges the user's primary scope with every configured extra storage.
+func mergeRootsFs(d *data) afero.Fs {
+	return files.NewMultiFs(storageRoots(d), d.server.FollowExternalSymlinks)
+}
+
+// storagesGetHandler lists the labels of every storage root visible to the
+// user, primary first. The file manager uses it to let the user pick a target
+// storage when creating new folders or files.
+var storagesGetHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+	roots := storageRoots(d)
+	labels := make([]string, 0, len(roots))
+	for _, root := range roots {
+		labels = append(labels, root.Label)
+	}
+	return renderJSON(w, r, labels)
+})
 
 func withAdmin(fn handleFunc) handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {

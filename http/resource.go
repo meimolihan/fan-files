@@ -130,15 +130,87 @@ func resourceDeleteHandler(fileCache FileCache) handleFunc {
 	})
 }
 
+// storageAwareFs is the interface the merged multi-root filesystem implements
+// when extra storages are configured. It lets a handler pin creations to a
+// specific storage root by label instead of letting the virtual path decide.
+type storageAwareFs interface {
+	RootIndexOf(label string) int
+	MkdirAllOnRoot(name string, root int, perm fs.FileMode) error
+	OpenFileOnRoot(name string, root int, flag int, perm fs.FileMode) (afero.File, error)
+}
+
+// resolveStorageRoot maps a requested storage label to its root index. An empty
+// label means "auto" and resolves to the primary volume (index 0). An unknown
+// label is a bad request.
+func resolveStorageRoot(fs afero.Fs, label string) (int, error) {
+	if label == "" {
+		return 0, nil
+	}
+	multi, ok := fs.(storageAwareFs)
+	if !ok {
+		return 0, fberrors.ErrInvalidRequestParams
+	}
+	root := multi.RootIndexOf(label)
+	if root < 0 {
+		return 0, fberrors.ErrInvalidRequestParams
+	}
+	return root, nil
+}
+
+// writeFileOnRoot is writeFile pinned to a specific storage root.
+func writeFileOnRoot(afs storageAwareFs, dst string, root int, in io.Reader, fileMode, dirMode fs.FileMode) (os.FileInfo, error) {
+	dir, _ := path.Split(dst)
+	err := afs.MkdirAllOnRoot(dir, root, dirMode)
+	if err != nil {
+		return nil, err
+	}
+
+	file, err := afs.OpenFileOnRoot(dst, root, os.O_RDWR|os.O_CREATE|os.O_TRUNC, fileMode)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	_, err = io.Copy(file, in)
+	if err != nil {
+		return nil, err
+	}
+
+	// Sync the file to ensure all data is written to storage.
+	// to prevent file corruption.
+	if err := file.Sync(); err != nil {
+		return nil, err
+	}
+
+	// Gets the info about the file.
+	info, err := file.Stat()
+	if err != nil {
+		return nil, err
+	}
+
+	return info, nil
+}
+
 func resourcePostHandler(fileCache FileCache) handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		if !d.user.Perm.Create || !d.Check(r.URL.Path) {
 			return http.StatusForbidden, nil
 		}
 
+		root, err := resolveStorageRoot(d.user.Fs, r.URL.Query().Get("storage"))
+		if err != nil {
+			return errToStatus(err), err
+		}
+
 		// Directories creation on POST.
 		if strings.HasSuffix(r.URL.Path, "/") {
 			err := d.RunHook(func() error {
+				if root != 0 {
+					if multi, ok := d.user.Fs.(storageAwareFs); ok {
+						return multi.MkdirAllOnRoot(r.URL.Path, root, d.settings.DirMode)
+					}
+					return fberrors.ErrInvalidRequestParams
+				}
 				return d.user.Fs.MkdirAll(r.URL.Path, d.settings.DirMode)
 			}, "upload", r.URL.Path, "", d.user)
 			return errToStatus(err), err
@@ -169,7 +241,17 @@ func resourcePostHandler(fileCache FileCache) handleFunc {
 		}
 
 		err = d.RunHook(func() error {
-			info, writeErr := writeFile(d.user.Fs, r.URL.Path, r.Body, d.settings.FileMode, d.settings.DirMode)
+			var info os.FileInfo
+			var writeErr error
+			if root != 0 {
+				if multi, ok := d.user.Fs.(storageAwareFs); ok {
+					info, writeErr = writeFileOnRoot(multi, r.URL.Path, root, r.Body, d.settings.FileMode, d.settings.DirMode)
+				} else {
+					writeErr = fberrors.ErrInvalidRequestParams
+				}
+			} else {
+				info, writeErr = writeFile(d.user.Fs, r.URL.Path, r.Body, d.settings.FileMode, d.settings.DirMode)
+			}
 			if writeErr != nil {
 				return writeErr
 			}

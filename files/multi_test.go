@@ -188,3 +188,68 @@ func TestMultiFsCrossRootRenameRejected(t *testing.T) {
 		t.Error("cross-root rename should be rejected")
 	}
 }
+
+func TestMultiFsStorageIndexing(t *testing.T) {
+	m, _, _ := newTestMultiFs(t)
+
+	if got := m.StorageLabels(); len(got) != 2 || got[0] != "存储空间1" || got[1] != "存储空间2" {
+		t.Errorf("StorageLabels() = %v, want [存储空间1 存储空间2]", got)
+	}
+	if got := m.RootIndexOf("存储空间1"); got != 0 {
+		t.Errorf("RootIndexOf(存储空间1) = %d, want 0", got)
+	}
+	if got := m.RootIndexOf("存储空间2"); got != 1 {
+		t.Errorf("RootIndexOf(存储空间2) = %d, want 1", got)
+	}
+	if got := m.RootIndexOf("存储空间3"); got != -1 {
+		t.Errorf("RootIndexOf(存储空间3) = %d, want -1", got)
+	}
+}
+
+func TestMultiFsMkdirAllOnRootPinsToTarget(t *testing.T) {
+	m, root1, root2 := newTestMultiFs(t)
+
+	if err := m.MkdirAllOnRoot("/brand-new-dir", 1, 0o755); err != nil {
+		t.Fatalf("MkdirAllOnRoot: %v", err)
+	}
+
+	if _, err := os.Stat(filepath.Join(root2, "brand-new-dir")); err != nil {
+		t.Errorf("directory should be created on the secondary root: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(root1, "brand-new-dir")); err == nil {
+		t.Error("directory should not be created on the primary root")
+	}
+
+	if err := m.MkdirAllOnRoot("/out-of-range", 42, 0o755); !os.IsNotExist(err) {
+		t.Errorf("out-of-range root should return os.ErrNotExist, got %v", err)
+	}
+}
+
+func TestMultiFsOpenFileOnRootPinsToTarget(t *testing.T) {
+	m, root1, root2 := newTestMultiFs(t)
+
+	f, err := m.OpenFileOnRoot("/brand-new-file.txt", 1, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0o644)
+	if err != nil {
+		t.Fatalf("OpenFileOnRoot: %v", err)
+	}
+	if _, werr := f.Write([]byte("hello")); werr != nil {
+		t.Fatalf("Write: %v", werr)
+	}
+	if cerr := f.Close(); cerr != nil {
+		t.Fatalf("Close: %v", cerr)
+	}
+
+	data, err := os.ReadFile(filepath.Join(root2, "brand-new-file.txt"))
+	if err != nil {
+		t.Errorf("file should be created on the secondary root: %v", err)
+	} else if string(data) != "hello" {
+		t.Errorf("file content = %q, want %q", string(data), "hello")
+	}
+	if _, err := os.Stat(filepath.Join(root1, "brand-new-file.txt")); err == nil {
+		t.Error("file should not be created on the primary root")
+	}
+
+	if _, err := m.OpenFileOnRoot("/out-of-range", 42, os.O_RDWR, 0o644); !os.IsNotExist(err) {
+		t.Errorf("out-of-range root should return os.ErrNotExist, got %v", err)
+	}
+}

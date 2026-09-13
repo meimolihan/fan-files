@@ -2,7 +2,13 @@ import { useAuthStore } from "@/stores/auth";
 import { useLayoutStore } from "@/stores/layout";
 import { baseURL } from "@/utils/constants";
 import { upload as postTus, useTus } from "./tus";
-import { createURL, fetchJSON, fetchURL, removePrefix, StatusError } from "./utils";
+import {
+  createURL,
+  fetchJSON,
+  fetchURL,
+  removePrefix,
+  StatusError,
+} from "./utils";
 import { isEncodableResponse, makeRawResource } from "@/utils/encodings";
 
 export async function fetch(url: string, signal?: AbortSignal) {
@@ -62,6 +68,10 @@ export async function getAbsolutePath(path: string): Promise<{ path: string }> {
   );
 }
 
+export async function storages(): Promise<string[]> {
+  return await fetchJSON<string[]>("/api/storages", {});
+}
+
 async function resourceAction(url: string, method: ApiMethod, content?: any) {
   url = removePrefix(url);
 
@@ -114,7 +124,8 @@ export async function post(
   url: string,
   content: ApiContent = "",
   overwrite = false,
-  onupload: any = () => {}
+  onupload: any = () => {},
+  storage?: string
 ) {
   // Use the pre-existing API if:
   const useResourcesApi =
@@ -126,7 +137,7 @@ export async function post(
     // Tus is disabled / not applicable
     !(await useTus(content));
   return useResourcesApi
-    ? postResources(url, content, overwrite, onupload)
+    ? postResources(url, content, overwrite, onupload, storage)
     : postTus(url, content, overwrite, onupload);
 }
 
@@ -134,7 +145,8 @@ async function postResources(
   url: string,
   content: ApiContent = "",
   overwrite = false,
-  onupload: any
+  onupload: any,
+  storage?: string
 ) {
   url = removePrefix(url);
 
@@ -149,11 +161,9 @@ async function postResources(
   const authStore = useAuthStore();
   return new Promise((resolve, reject) => {
     const request = new XMLHttpRequest();
-    request.open(
-      "POST",
-      `${baseURL}/api/resources${url}?override=${overwrite}`,
-      true
-    );
+    let postUrl = `${baseURL}/api/resources${url}?override=${overwrite}`;
+    if (storage) postUrl += `&storage=${encodeURIComponent(storage)}`;
+    request.open("POST", postUrl, true);
     request.setRequestHeader("X-Auth", authStore.jwt);
 
     if (typeof onupload === "function") {

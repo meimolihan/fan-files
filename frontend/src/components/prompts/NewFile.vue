@@ -12,8 +12,29 @@
         type="text"
         @keyup.enter="submit"
         v-model.trim="name"
+        tabindex="1"
       />
-      <CreateFilePath :name="name" />
+      <label v-if="storageOptions.length > 1" class="storage-label">
+        <span>{{ t("prompts.selectStorage") }}</span>
+        <select
+          class="input input--block"
+          v-model="selectedStorage"
+          :aria-label="t('prompts.selectStorage')"
+          tabindex="2"
+        >
+          <option
+            v-for="storage in storageOptions"
+            :key="storage"
+            :value="storage"
+          >
+            {{ storage }}
+          </option>
+        </select>
+      </label>
+      <CreateFilePath
+        :name="name"
+        :storage="storageOptions.length > 1 ? selectedStorage : undefined"
+      />
     </div>
 
     <div class="card-action">
@@ -22,6 +43,7 @@
         @click="layoutStore.closeHovers"
         :aria-label="t('buttons.cancel')"
         :title="t('buttons.cancel')"
+        tabindex="4"
       >
         {{ t("buttons.cancel") }}
       </button>
@@ -30,6 +52,7 @@
         @click="submit"
         :aria-label="t('buttons.create')"
         :title="t('buttons.create')"
+        tabindex="3"
       >
         {{ t("buttons.create") }}
       </button>
@@ -38,7 +61,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject, ref } from "vue";
+import { inject, onActivated, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 import { useFileStore } from "@/stores/file";
@@ -58,6 +81,30 @@ const router = useRouter();
 const { t } = useI18n();
 
 const name = ref<string>("");
+const storageOptions = ref<string[]>([]);
+const selectedStorage = ref<string>("");
+
+const loadStorages = async () => {
+  try {
+    storageOptions.value = await api.storages();
+  } catch {
+    storageOptions.value = [];
+  }
+
+  // Prefer the storage holding the current directory, falling back to the
+  // primary volume.
+  const current = fileStore.req?.storage;
+  if (current && storageOptions.value.includes(current)) {
+    selectedStorage.value = current;
+  } else {
+    selectedStorage.value = storageOptions.value[0] || "";
+  }
+};
+
+onActivated(() => {
+  name.value = "";
+  loadStorages();
+});
 
 const submit = async (event: Event) => {
   event.preventDefault();
@@ -74,7 +121,13 @@ const submit = async (event: Event) => {
   uri = uri.replace("//", "/");
 
   try {
-    await api.post(uri);
+    await api.post(
+      uri,
+      "",
+      false,
+      () => {},
+      selectedStorage.value || undefined
+    );
     router.push({ path: uri });
   } catch (e) {
     if (e instanceof Error) {
@@ -85,3 +138,17 @@ const submit = async (event: Event) => {
   layoutStore.closeHovers();
 };
 </script>
+
+<style scoped>
+.storage-label {
+  display: block;
+  margin: 0.5em 0 0.2em;
+}
+
+.storage-label > span {
+  display: inline-block;
+  margin-bottom: 0.3em;
+  font-size: 0.9em;
+  opacity: 0.7;
+}
+</style>

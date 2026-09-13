@@ -73,6 +73,7 @@ func NewHandler(
 	api.PathPrefix("/tus").Handler(monkey(tusDeleteHandler(uploadCache), "/api/tus")).Methods("DELETE")
 
 	api.PathPrefix("/usage").Handler(monkey(diskUsage, "/api/usage")).Methods("GET")
+	api.PathPrefix("/storages").Handler(monkey(storagesGetHandler, "/api/storages")).Methods("GET")
 	api.Handle("/path", monkey(absolutePathHandler, "")).Methods("GET")
 
 	api.Handle("/shares", monkey(shareListHandler, "")).Methods("GET")

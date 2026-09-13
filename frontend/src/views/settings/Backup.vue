@@ -23,7 +23,11 @@
           <input type="number" v-model.number="keepNum" min="1" max="100" />
           <span class="help-text">{{ t("backup.keepNumHelp") }}</span>
         </div>
-        <button class="btn btn-primary" @click="createBackup" :disabled="creating">
+        <button
+          class="btn btn-primary"
+          @click="createBackup"
+          :disabled="creating"
+        >
           <span v-if="creating">{{ t("backup.creating") }}...</span>
           <span v-else>{{ t("backup.createBackup") }}</span>
         </button>
@@ -56,7 +60,9 @@
                 @click="restoreBackup(backup.name)"
                 :disabled="restoring === backup.name"
               >
-                <span v-if="restoring === backup.name">{{ t("backup.restoring") }}...</span>
+                <span v-if="restoring === backup.name"
+                  >{{ t("backup.restoring") }}...</span
+                >
                 <span v-else>{{ t("backup.restore") }}</span>
               </button>
               <button
@@ -64,7 +70,9 @@
                 @click="deleteBackup(backup.name)"
                 :disabled="deleting === backup.name"
               >
-                <span v-if="deleting === backup.name">{{ t("backup.deleting") }}...</span>
+                <span v-if="deleting === backup.name"
+                  >{{ t("backup.deleting") }}...</span
+                >
                 <span v-else>{{ t("backup.delete") }}</span>
               </button>
             </td>
@@ -77,7 +85,10 @@
       <h3>{{ t("backup.jobStatus") }}</h3>
       <div class="job-status" :class="jobStatus.status">
         <div class="progress-bar">
-          <div class="progress-fill" :style="{ width: jobStatus.progress + '%' }"></div>
+          <div
+            class="progress-fill"
+            :style="{ width: jobStatus.progress + '%' }"
+          ></div>
         </div>
         <p>{{ jobStatus.message }}</p>
         <small>{{ t("backup.progress") }}: {{ jobStatus.progress }}%</small>
@@ -87,13 +98,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
-import { useAuthStore } from "@/stores/auth";
 import * as backupApi from "@/api/backup";
 
 const { t } = useI18n();
-const authStore = useAuthStore();
 
 const backupDir = ref("");
 const keepNum = ref(6);
@@ -118,20 +127,6 @@ interface JobStatus {
   status: string;
   message: string;
   progress: number;
-  file?: string;
-}
-
-interface BackupListResponse {
-  backups: BackupInfo[];
-  dir: string;
-}
-
-interface ApiResponse {
-  success: boolean;
-  message: string;
-  jobId?: string;
-  status?: string;
-  progress?: number;
   file?: string;
 }
 

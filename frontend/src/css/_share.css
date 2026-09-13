@@ -92,11 +92,11 @@
 }
 
 @media (hover: none) {
-  .share__box__element .button:not(:active):not(:focus-visible) {
-    background: var(--surfacePrimary) !important;
+  .share__box__element .button:hover:not(:disabled) {
+    transform: none !important;
   }
 
-  .share__box__element .button:hover:not(:disabled) {
-    background: transparent !important;
+  .share__box__element .button:active:not(:disabled) {
+    transform: scale(1.1);
   }
 }

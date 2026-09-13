@@ -68,6 +68,47 @@ func (m *MultiFs) StorageOf(name string) string {
 	return m.owner(seg).label
 }
 
+// StorageLabels returns the label of every configured storage root, primary
+// first. It lets the UI offer a target storage when creating new resources.
+func (m *MultiFs) StorageLabels() []string {
+	labels := make([]string, 0, len(m.roots))
+	for _, r := range m.roots {
+		labels = append(labels, r.label)
+	}
+	return labels
+}
+
+// RootIndexOf returns the index of the root whose label matches, or -1 when no
+// root carries that label.
+func (m *MultiFs) RootIndexOf(label string) int {
+	for i, r := range m.roots {
+		if r.label == label {
+			return i
+		}
+	}
+	return -1
+}
+
+// MkdirAllOnRoot creates a directory tree pinned to a specific storage root,
+// regardless of where the path would normally be routed. It returns
+// os.ErrNotExist when the root index is out of range.
+func (m *MultiFs) MkdirAllOnRoot(name string, root int, perm os.FileMode) error {
+	if root < 0 || root >= len(m.roots) {
+		return os.ErrNotExist
+	}
+	return m.roots[root].fs.MkdirAll(name, perm)
+}
+
+// OpenFileOnRoot opens a file pinned to a specific storage root, regardless of
+// where the path would normally be routed. It returns os.ErrNotExist when the
+// root index is out of range.
+func (m *MultiFs) OpenFileOnRoot(name string, root int, flag int, perm os.FileMode) (afero.File, error) {
+	if root < 0 || root >= len(m.roots) {
+		return nil, os.ErrNotExist
+	}
+	return m.roots[root].fs.OpenFile(name, flag, perm)
+}
+
 // ownerIndex returns the index of the root that owns a top-level segment, or
 // 0 when the segment exists nowhere (so writes land on the primary volume).
 func (m *MultiFs) ownerIndex(seg string) int {

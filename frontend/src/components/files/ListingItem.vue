@@ -55,9 +55,15 @@
         <path
           d="M704 202.666667a96 96 0 0 1 96 96v554.666666a96 96 0 0 1-96 96H213.333333A96 96 0 0 1 117.333333 853.333333V298.666667A96 96 0 0 1 213.333333 202.666667h490.666667z m0 64H213.333333A32 32 0 0 0 181.333333 298.666667v554.666666a32 32 0 0 0 32 32h490.666667a32 32 0 0 0 32-32V298.666667a32 32 0 0 0-32-32z"
         />
-        <path d="M277.333333 362.666667m32 0l298.666667 0q32 0 32 32l0 0q0 32-32 32l-298.666667 0q-32 0-32-32l0 0q0-32 32-32Z" />
-        <path d="M277.333333 512m32 0l298.666667 0q32 0 32 32l0 0q0 32-32 32l-298.666667 0q-32 0-32-32l0 0q0-32 32-32Z" />
-        <path d="M277.333333 661.333333m32 0l170.666667 0q32 0 32 32l0 0q0 32-32 32l-170.666667 0q-32 0-32-32l0 0q0-32 32-32Z" />
+        <path
+          d="M277.333333 362.666667m32 0l298.666667 0q32 0 32 32l0 0q0 32-32 32l-298.666667 0q-32 0-32-32l0 0q0-32 32-32Z"
+        />
+        <path
+          d="M277.333333 512m32 0l298.666667 0q32 0 32 32l0 0q0 32-32 32l-298.666667 0q-32 0-32-32l0 0q0-32 32-32Z"
+        />
+        <path
+          d="M277.333333 661.333333m32 0l170.666667 0q32 0 32 32l0 0q0 32-32 32l-170.666667 0q-32 0-32-32l0 0q0-32 32-32Z"
+        />
         <path
           d="M320 138.666667h512A32 32 0 0 1 864 170.666667v576a32 32 0 0 0 64 0V170.666667A96 96 0 0 0 832 74.666667H320a32 32 0 0 0 0 64z"
         />
@@ -460,17 +466,15 @@ const handleTouchMove = (event: TouchEvent) => {
   padding: 0;
   border: none;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.55);
-  color: #fff;
+  background: transparent;
+  color: var(--textPrimary);
   cursor: pointer;
   z-index: 2;
   opacity: 0;
   pointer-events: none;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
   transition:
     opacity 0.18s ease,
-    background 0.18s ease,
-    box-shadow 0.18s ease,
+    color 0.18s ease,
     transform 0.18s ease;
 }
 
@@ -491,8 +495,7 @@ const handleTouchMove = (event: TouchEvent) => {
 }
 
 #listing .item .copy-path:hover {
-  background: rgba(0, 0, 0, 0.75);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  color: var(--textSecondary);
   transform: translateY(-50%) scale(1.08);
 }
 
@@ -503,14 +506,13 @@ const handleTouchMove = (event: TouchEvent) => {
     right: 0.4rem;
     width: 1.6rem;
     height: 1.6rem;
-    background: rgba(0, 0, 0, 0.45);
+    background: transparent;
     opacity: 1;
     pointer-events: auto;
   }
 
   #listing .item .copy-path:hover {
     transform: translateY(-50%) scale(1.06);
-    background: rgba(0, 0, 0, 0.65);
   }
 
   #listing .item .copy-path svg {

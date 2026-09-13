@@ -13,6 +13,14 @@
           {{ item }}
         </span>
       </template>
+      <span
+        v-if="storage"
+        class="path-storage"
+        :title="t('prompts.targetStorage')"
+      >
+        <i class="material-icons">sd_storage</i>
+        {{ storage }}
+      </span>
     </div>
   </div>
 </template>
@@ -22,9 +30,11 @@ import { ref, computed, watch, nextTick } from "vue";
 import { useRoute } from "vue-router";
 import { useFileStore } from "@/stores/file";
 import url from "@/utils/url";
+import { useI18n } from "vue-i18n";
 
 const fileStore = useFileStore();
 const route = useRoute();
+const { t } = useI18n();
 
 const props = defineProps({
   name: {
@@ -36,6 +46,10 @@ const props = defineProps({
     default: false,
   },
   path: {
+    type: String,
+    default: null,
+  },
+  storage: {
     type: String,
     default: null,
   },
@@ -87,5 +101,22 @@ watch(path, () => {
 
 .path-item > span {
   font-size: 0.9em;
+}
+
+.path-storage {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
+  margin-left: 0.5em;
+  padding: 0.1em 0.5em;
+  border-radius: 0.3em;
+  background: var(--surfaceSecondary);
+  color: var(--textPrimary);
+  white-space: nowrap;
+  font-size: 0.85em;
+}
+
+.path-storage > i {
+  font-size: 1em;
 }
 </style>

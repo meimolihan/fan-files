@@ -1,6 +1,21 @@
 <template>
   <div class="card floating">
     <div class="card-content">
+      <div v-if="names.length" class="delete-target">
+        <span v-if="names.length === 1" class="delete-highlight">{{
+          names[0]
+        }}</span>
+        <template v-else>
+          <ul class="delete-list">
+            <li v-for="(name, index) in names.slice(0, maxNames)" :key="index">
+              <span class="delete-highlight">{{ name }}</span>
+            </li>
+          </ul>
+          <p v-if="names.length > maxNames" class="delete-more">
+            {{ $t("prompts.deleteMore", { count: names.length - maxNames }) }}
+          </p>
+        </template>
+      </div>
       <p v-if="!this.isListing || selectedCount === 1">
         {{ $t("prompts.deleteMessageSingle") }}
       </p>
@@ -51,6 +66,20 @@ export default {
     ]),
     ...mapState(useLayoutStore, ["currentPrompt"]),
     ...mapWritableState(useFileStore, ["reload", "preselect"]),
+    names: function () {
+      if (!this.isListing) {
+        return this.req?.name ? [this.req.name] : [];
+      }
+
+      return this.selected
+        .map((index) => this.req?.items[index]?.name)
+        .filter((name) => name);
+    },
+  },
+  data() {
+    return {
+      maxNames: 5,
+    };
   },
   methods: {
     ...mapActions(useLayoutStore, ["closeHovers"]),
@@ -96,3 +125,31 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.delete-target {
+  margin-bottom: 1em;
+}
+
+.delete-highlight {
+  color: var(--icon-yellow);
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.delete-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.delete-list li {
+  padding: 0.1em 0;
+  border-left: 3px solid var(--icon-yellow);
+  padding-left: 0.6em;
+}
+
+.delete-more {
+  margin: 0.5em 0 0;
+}
+</style>

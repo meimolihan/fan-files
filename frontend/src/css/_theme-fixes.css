@@ -1,0 +1,178 @@
+/* ============================================================================
+   THEME & MOBILE AUDIT FIXES (additive layer)
+   ----------------------------------------------------------------------------
+   Applied after every other stylesheet, so it can fix broken/undressed states
+   without touching the original files. Every rule is scoped to either a theme
+   (`html[data-theme="..."]`) or a viewport/input condition, and none of them
+   alter the light-theme originals or any DOM structure.
+
+   Problem tags below match the audit report: P1..P9 = theme, P11..P18 =
+   responsive/touch, P20 = animation timing.
+   ============================================================================ */
+
+/* ----------------------------------------------------------------------------
+   P1–P3  Undefined design tokens
+   Several components reference CSS variables that were never defined anywhere
+   (`--text` in the EPUB reader, `--fg` in the editor, plus the whole
+   Backup page palette), so those controls render with no background, no
+   border and an inherited colour in every theme. We map them onto the existing
+   themed palette below. Because custom properties resolve their `var()`
+   references at use-time, a single `:root` declaration follows the active
+   light/dark theme automatically.
+   ---------------------------------------------------------------------------- */
+:root {
+  --text: var(--textSecondary);
+  --fg: var(--textSecondary);
+
+  --surface-color: var(--surfacePrimary);
+  --text-primary: var(--textSecondary);
+  --text-secondary: var(--textPrimary);
+  --border-color: var(--borderSecondary);
+  --input-bg: var(--surfacePrimary);
+  --primary-color: var(--blue);
+  --primary-rgb: 33, 150, 243;
+  --secondary-bg: var(--surfaceSecondary);
+  --danger-color: var(--red);
+  --success-color: var(--icon-green);
+  --warning-color: var(--icon-orange);
+  --hover-bg: var(--hover);
+}
+
+/* ----------------------------------------------------------------------------
+   P5–P9  Hard-coded light colours that break the dark theme
+   Light has its own palette (untouched); these declarations only complete the
+   missing dark styles where components hard-code light values.
+   ---------------------------------------------------------------------------- */
+
+/* P5 – TUS conditional-settings: disabled inputs hard-coded #ddd/#999 */
+html[data-theme="dark"] .tusConditionalSettings input:disabled {
+  background-color: var(--surfaceSecondary);
+  color: var(--textPrimary);
+}
+
+/* P6 – Settings rules: "1px solid#ddd" is an invalid value (no border at
+        all) and light-only; give dark a real border from the theme. */
+html[data-theme="dark"] .rules input[type="text"] {
+  border: 1px solid var(--borderSecondary);
+}
+
+/* P7 – Markdown preview: border was a hard black, invisible in dark */
+html[data-theme="dark"] .md_preview {
+  border-color: var(--borderPrimary);
+}
+
+/* P8 – Footer/sidebar credits at #a5a5a5: too faint on dark */
+html[data-theme="dark"] .credits {
+  color: var(--textPrimary);
+}
+
+/* P9 – Disk-usage progress track: the component hard-codes #eee via a prop
+        that lands as an inline style; force a themed track in dark. */
+html[data-theme="dark"] .vue-simple-progress {
+  background-color: var(--surfaceSecondary) !important;
+}
+
+/* ----------------------------------------------------------------------------
+   P11–P16  Touch target size (>= 44px) on touch-first viewports
+   Also applied below 736px to be safe. `min-height`/`min-width` are used so
+   they win even against explicit `height: 40px` component styles.
+   ---------------------------------------------------------------------------- */
+@media (hover: none), (max-width: 736px) {
+  /* P11 – header icon buttons (menu / search / more / action buttons) */
+  header .action {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* P12 – sidebar entries */
+  nav .action {
+    min-height: 44px;
+    padding-top: 0.55em;
+    padding-bottom: 0.55em;
+  }
+
+  /* P13–P14 – buttons, inputs, prompt actions, context menu, mobile dropdown,
+     file selection bar and the toast "report" button */
+  .button,
+  .input,
+  .card .card-action.full .action,
+  .context-menu .action,
+  #dropdown .action,
+  #file-selection .action,
+  .Vue-Toastification__toast .action {
+    min-height: 44px;
+  }
+
+  /* P15 – fullscreen previewer prev/next arrows */
+  #previewer > button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* P16 – inline "copy path" button per listing row */
+  #listing .item .copy-path {
+    width: 2.75rem !important;
+    height: 2.75rem !important;
+  }
+  #listing .item .copy-path svg {
+    width: 1.35rem !important;
+    height: 1.35rem !important;
+  }
+}
+
+/* ----------------------------------------------------------------------------
+   P17–P18  Mobile layout niceties
+   ---------------------------------------------------------------------------- */
+
+/* P17 – Long breadcrumb paths were being flex-shrunk (squeezed/word-wrapped)
+         on phones; allow the bar to scroll horizontally while keeping each
+         crumb intact. */
+@media (max-width: 736px) {
+  .breadcrumbs {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .breadcrumbs::-webkit-scrollbar {
+    display: none;
+  }
+  .breadcrumbs > * {
+    flex: 0 0 auto;
+  }
+  .breadcrumbs a,
+  .breadcrumbs span,
+  .breadcrumbs .chevron {
+    white-space: nowrap;
+  }
+}
+
+/* P18 – Neutralise hover styles that would otherwise stick on touch
+         (lifted buttons, tinted rows/breadcrumbs/table hover). */
+@media (hover: none) {
+  .button:hover:not(:disabled),
+  .button--flat:hover:not(:disabled),
+  .share__box__element .button:hover:not(:disabled) {
+    transform: none !important;
+  }
+
+  #listing.list .item:hover:not([aria-selected="true"]),
+  .breadcrumbs a:hover,
+  table tbody tr:hover,
+  .dashboard #nav ul li:hover {
+    background: transparent !important;
+  }
+}
+
+/* ----------------------------------------------------------------------------
+   P20  Animation timing
+   Micro-interactions below 0.2s stand out next to the 0.2–0.3s ease motion
+   everywhere else; normalise the most visible ones to ~0.2s.
+   ---------------------------------------------------------------------------- */
+#listing .item,
+#listing .item .action,
+.action i,
+#search #result,
+#dropdown {
+  transition-duration: 0.2s !important;
+}

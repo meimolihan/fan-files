@@ -17,6 +17,9 @@
 @import "./epubReader.css";
 @import "./mdPreview.css";
 @import "./context-menu.css";
+@import "./_light-theme.css";
+@import "./_beautify.css";
+@import "./_theme-fixes.css";
 
 /* For testing only
  :focus {

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark" data-ui="material" class="dark">
   <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -7,6 +7,40 @@
       name="viewport"
       content="width=device-width, initial-scale=1"
     />
+
+    <!-- Theme boot: restore the saved theme (falling back to the OS
+         preference) before the first paint, so there is no flash of the
+         wrong theme. -->
+    <script>
+      (function () {
+        try {
+          var KEY = "fan-files-theme";
+          var stored = null;
+          try {
+            stored = window.localStorage.getItem(KEY);
+          } catch (e) {}
+          var theme =
+            stored === "light" || stored === "dark"
+              ? stored
+              : window.matchMedia &&
+                  window.matchMedia("(prefers-color-scheme: dark)").matches
+                ? "dark"
+                : "light";
+          var root = document.documentElement;
+          root.dataset.theme = theme;
+          root.className = theme;
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) {
+            meta.setAttribute(
+              "content",
+              theme === "dark" ? "#141d24" : "#fafafa"
+            );
+          }
+        } catch (e) {
+          /* never block the app because of the theme boot */
+        }
+      })();
+    </script>
 
     [{[ if .ReCaptcha -]}]
     <script src="[{[ .ReCaptchaHost ]}]/recaptcha/api.js?render=explicit"></script>
@@ -152,6 +186,15 @@
           -webkit-transform: scale(1);
           transform: scale(1);
         }
+      }
+
+      /* Dark theme: avoid a white first-paint flash on the loading screen
+         (data-theme is already set by the theme boot script above). */
+      html[data-theme="dark"] #loading {
+        background: #141d24;
+      }
+      html[data-theme="dark"] #loading .spinner > div {
+        background-color: #efeff3;
       }
     </style>
   </head>

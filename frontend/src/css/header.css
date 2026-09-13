@@ -61,16 +61,19 @@ header .menu-button {
 }
 
 @media (hover: none) {
-  header a:not(:focus-visible):not(:active) {
-    background: transparent !important;
-  }
-
-  header .action:not(:active):not(:focus-visible) {
-    background: var(--surfacePrimary) !important;
-  }
-
+  header a:hover,
   header .action:hover:not(:disabled) {
     background: transparent !important;
+  }
+
+  header .action:active {
+    background: var(--hover);
+  }
+
+  header a:focus-visible,
+  header .action:focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 2px;
   }
 }
 

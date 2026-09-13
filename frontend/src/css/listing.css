@@ -278,6 +278,7 @@ html[dir="rtl"] #listing {
   width: 100%;
   background-color: var(--blue);
   height: 4em;
+  border-radius: 5px;
   padding: 0.5em 0.5em 0.5em 1em;
   justify-content: space-between;
   transition: 0.2s ease bottom;

@@ -94,7 +94,8 @@
       rgba(0, 0, 0, 0.12) 0px 1px 2px;
     width: 95%;
     max-width: 20em;
-    z-index: 1;
+    border-radius: 5px;
+    z-index: 100;
   }
   #file-selection .action {
     border-radius: 50%;
@@ -178,44 +179,41 @@
 
   /* === Touch device fixes === */
   @media (hover: none) {
-    *:hover,
-    *:active {
-      background: transparent !important;
-      transform: none !important;
+    /* Remove the default translucent flash/highlight the browser paints on
+     * every tapped element, so tapping an un-styled element does not turn
+     * white. */
+    * {
+      -webkit-tap-highlight-color: transparent;
     }
 
+    /*
+     * Never blanket-apply `:active`/`:hover` overrides to `*`. On iOS the
+     * activation state propagates to ancestors (and stays while a form
+     * control keeps focus), so such rules blank the background and strip the
+     * `transform: translate(-50%, -50%)` of centered full-screen dialogs
+     * (#login, .card.floating), pushing them off-center.
+     *
+     * Only neutralise the *hover* background of the specific elements whose
+     * hover style would otherwise stick after a tap. Transform is left alone.
+     */
     .action:hover,
-    .button:hover,
     .button--flat:hover,
-    .input:hover,
     .vue-number-input :hover,
     .shell__divider:hover,
-    .file-list li:hover,
+    .file-list li:hover:not([aria-selected="true"]),
     .collapsible > label:hover,
-    .file-list li[aria-selected="true"]:not(:focus):hover,
     .action ul li:hover,
     #previewer header .action:hover,
     #previewer .preview .info .button:hover,
     .credits a:hover,
     .epub-reader .readerArea .arrow:hover,
     .dashboard #nav ul li:hover,
-    #listing.mosaic .item:hover {
+    #listing.mosaic .item:hover:not([aria-selected="true"]) {
       background: transparent !important;
-      transform: none !important;
     }
 
-    /* Remove hover-based backgrounds and state changes */
-    .action:not(:active):not(:focus-visible),
-    .button:not(:active):not(:focus-visible),
-    .button--flat:not(:active):not(:focus-visible),
-    .input:not(:active):not(:focus-visible) {
-      background: var(--surfacePrimary) !important;
-      color: var(--textSecondary) !important;
-    }
-
-    /* Ensure active/focus states remain visible */
+    /* Keep a visible focus indicator for keyboard / assistive tech users. */
     .action:focus-visible,
-    .button:focus-visible,
     .button--flat:focus-visible,
     .input:focus-visible,
     .vue-number-input :focus-visible {
@@ -224,26 +222,13 @@
     }
 
     /* Prevent accidental hover styling on touch */
-    a:not(:focus-visible):not(:active) {
+    a:hover {
       background: transparent !important;
     }
 
-    @media (hover: none) {
-      #previewer header .action:not(:active):not(:focus-visible) {
-        background: var(--surfacePrimary) !important;
-      }
-
-      #previewer header .action:hover:not(:disabled) {
-        background: transparent !important;
-      }
-
-      #previewer .preview .info .button:not(:active):not(:focus-visible) {
-        background: var(--surfacePrimary) !important;
-      }
-
-      #previewer .preview .info .button:hover:not(:disabled) {
-        background: transparent !important;
-      }
+    #previewer header .action:hover:not(:disabled),
+    #previewer .preview .info .button:hover:not(:disabled) {
+      background: transparent !important;
     }
 
     /* Dropdown hover states should be disabled on touch */

@@ -18,6 +18,8 @@
       <slot name="actions" />
     </div>
 
+    <ThemeToggle />
+
     <Action
       v-if="ifActionsSlot"
       id="more"
@@ -40,6 +42,7 @@ import { useLayoutStore } from "@/stores/layout";
 import { logoURL } from "@/utils/constants";
 
 import Action from "@/components/header/Action.vue";
+import ThemeToggle from "@/components/header/ThemeToggle.vue";
 import { computed, useSlots } from "vue";
 import { useI18n } from "vue-i18n";
 
