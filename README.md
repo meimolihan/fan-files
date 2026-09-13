@@ -178,6 +178,8 @@ curl -X DELETE -H "X-Auth: $TOKEN" http://localhost:8678/api/backup/FanFiles-xxx
 | **停止服务** | `systemctl stop fan-files` |
 | **实时日志** | `journalctl -u fan-files -f` |
 | **查看最近 50 行日志** | `journalctl -u fan-files -n 50` |
+| **重置用户密码（脚本，自动 sudo）** | `sudo scripts/reset-password.sh <用户名> '<新密码>'` |
+| **重置用户密码（CLI 单条命令）** | `sudo /usr/local/bin/fan-files -c /etc/fan-files/settings.json users update <用户名> -p '<新密码>'` |
 | **卸载（保留数据）** | `bash scripts/uninstall.sh -y --keep-data` |
 | **卸载（删除数据）** | `bash scripts/uninstall.sh -y --purge` |
 | **远程卸载** | `curl -fsSL https://raw.githubusercontent.com/meimolihan/fan-files/main/scripts/uninstall.sh \| bash -s -- -y --keep-data` |

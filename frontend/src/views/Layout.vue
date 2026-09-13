@@ -16,6 +16,7 @@
         "
       />
     </main>
+    <FavoritesPanel />
     <prompts></prompts>
     <upload-files></upload-files>
   </div>
@@ -27,6 +28,7 @@ import { useLayoutStore } from "@/stores/layout";
 import { useFileStore } from "@/stores/file";
 import { useUploadStore } from "@/stores/upload";
 import Sidebar from "@/components/Sidebar.vue";
+import FavoritesPanel from "@/components/FavoritesPanel.vue";
 import Prompts from "@/components/prompts/Prompts.vue";
 import Shell from "@/components/Shell.vue";
 import UploadFiles from "@/components/prompts/UploadFiles.vue";

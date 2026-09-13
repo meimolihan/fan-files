@@ -250,18 +250,13 @@ export function getSubtitlesURL(file: ResourceItem) {
   return file.subtitles?.map((d) => createURL("api/subtitle" + d, params));
 }
 
-export async function usage(url: string, signal: AbortSignal) {
-  url = removePrefix(url);
+export interface StorageUsage {
+  label: string;
+  total: number;
+  used: number;
+}
 
-  const res = await fetchURL(`/api/usage${url}`, { signal });
-
-  try {
-    return await res.json();
-  } catch (e) {
-    // Check if the error is an intentional cancellation
-    if (e instanceof Error && e.name == "AbortError") {
-      throw new StatusError("000 No connection", 0, true);
-    }
-    throw e;
-  }
+export async function storagesUsage(signal?: AbortSignal): Promise<StorageUsage[]> {
+  const res = await fetchURL("/api/storages/usage/", { signal });
+  return await res.json();
 }

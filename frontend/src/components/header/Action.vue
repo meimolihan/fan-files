@@ -1,5 +1,11 @@
 <template>
-  <button @click="action" :aria-label="label" :title="label" class="action">
+  <button
+    @click="action"
+    :aria-label="label"
+    :title="label"
+    class="action"
+    :disabled="disabled"
+  >
     <i class="material-icons">{{ icon }}</i>
     <span>{{ label }}</span>
     <span v-if="counter && counter > 0" class="counter">{{ counter }}</span>
@@ -14,6 +20,7 @@ const props = defineProps<{
   label?: string;
   counter?: number;
   show?: string;
+  disabled?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -23,6 +30,7 @@ const emit = defineEmits<{
 const layoutStore = useLayoutStore();
 
 const action = () => {
+  if (props.disabled) return;
   if (props.show) {
     layoutStore.showHover(props.show);
   }

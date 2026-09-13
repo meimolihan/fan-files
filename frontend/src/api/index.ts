@@ -6,5 +6,6 @@ import * as pub from "./pub";
 import search from "./search";
 import commands from "./commands";
 import * as backup from "./backup";
+import * as favorites from "./favorites";
 
-export { files, share, users, settings, pub, commands, search, backup };
+export { files, share, users, settings, pub, commands, search, backup, favorites };

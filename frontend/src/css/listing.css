@@ -92,7 +92,7 @@ html[dir="rtl"] #listing {
 
 #listing.mosaic .item {
   width: calc(33% - 1em);
-  margin: 0.5em;
+  margin: 0.375em 0.5em;
   padding: 0.5em;
   border-radius: 0.2em;
   box-shadow:
@@ -169,7 +169,7 @@ html[dir="rtl"] #listing {
   width: 100%;
   margin: 0;
   border: 1px solid var(--borderPrimary);
-  padding: 1em;
+  padding: 1.25em;
   border-top: 0;
 }
 
@@ -183,26 +183,27 @@ html[dir="rtl"] #listing {
 }
 
 #listing.list .item div:first-of-type {
-  width: 3em;
+  width: 3.5em;
 }
 
 #listing.list .item div:first-of-type i {
-  font-size: 2em;
+  font-size: 2.5em;
 }
 
 #listing.list .item div:first-of-type img {
-  width: 2em;
-  height: 2em;
+  width: 2.4em;
+  height: 2.4em;
 }
 
 #listing.list .item div:last-of-type {
-  width: calc(100% - 3em);
+  width: calc(100% - 3.5em);
   display: flex;
   align-items: center;
 }
 
 #listing.list .item .name {
   width: 45%;
+  font-size: 1.0625em;
 }
 
 #listing.list .item .storage {
@@ -291,4 +292,68 @@ html[dir="rtl"] #listing {
 #listing #multiple-selection p,
 #listing #multiple-selection i {
   color: var(--iconSecondary);
+}
+
+/* ---------------------------------------------------------------------------
+   View-switch transitions: each view mode gets its own named animation so the
+   transition replays whenever the listing class changes (list/grid/gallery).
+   --------------------------------------------------------------------------- */
+@keyframes switch-to-list {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes switch-to-grid {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes switch-to-gallery {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+#listing.list {
+  animation: switch-to-list 0.22s ease;
+}
+
+/* list view: independent rounded cards ---------------------------------- */
+#listing.list .item:not(.header) {
+  margin: 0.375em 0;
+  border: 1px solid var(--borderPrimary);
+  border-radius: 10px;
+  box-shadow: var(--ui-shadow-1);
+  transition:
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+#listing.list .item:not(.header):hover {
+  box-shadow: var(--ui-shadow-2);
+}
+
+#listing.mosaic {
+  animation: switch-to-grid 0.22s ease;
+}
+
+#listing.mosaic.gallery {
+  animation: switch-to-gallery 0.22s ease;
 }

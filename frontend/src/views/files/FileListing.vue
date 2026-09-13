@@ -54,6 +54,7 @@
           @action="layoutStore.toggleShell"
         />
         <action
+          v-if="!isMobile"
           :icon="viewIcon"
           :label="t('buttons.switchView')"
           @action="switchView"
@@ -89,8 +90,17 @@
       }"
     >
       <span v-if="fileStore.selectedCount > 0">
-        {{ t("prompts.filesSelected", fileStore.selectedCount) }}
+        {{ fileStore.selectedCount }}
       </span>
+      <action
+        v-if="fileStore.selectedCount > 0"
+        class="favorite-selection"
+        id="favorite-selection"
+        :icon="favoriteSelectionIcon"
+        :label="favoriteSelectionLabel"
+        :disabled="!allSelectedAreDirs"
+        @action="toggleFavoriteSelection"
+      />
       <action
         v-if="headerButtons.share"
         icon="share"
@@ -121,6 +131,27 @@
         :label="t('buttons.delete')"
         show="delete"
       />
+    </div>
+
+    <div
+      v-if="isMobile"
+      class="view-switch"
+      role="group"
+      :aria-label="t('buttons.switchView')"
+    >
+      <button
+        v-for="mode in viewModes"
+        :key="mode"
+        type="button"
+        class="view-switch__segment"
+        :class="{ active: (authStore.user?.viewMode ?? 'list') === mode }"
+        :title="viewLabel(mode)"
+        :aria-pressed="(authStore.user?.viewMode ?? 'list') === mode"
+        @click="setView(mode)"
+      >
+        <i class="material-icons">{{ viewIcons[mode] }}</i>
+        <span>{{ viewLabel(mode) }}</span>
+      </button>
     </div>
 
     <div v-if="layoutStore.loading">
@@ -310,6 +341,13 @@
             :counter="fileStore.selectedCount"
           />
           <action
+            v-if="allSelectedAreDirs"
+            id="favorite-context"
+            :icon="favoriteSelectionIcon"
+            :label="favoriteSelectionLabel"
+            @action="toggleFavoriteSelection"
+          />
+          <action
             icon="link"
             :label="t('buttons.copyPath')"
             @action="copyRealPath"
@@ -385,6 +423,7 @@ import { useRoute, onBeforeRouteUpdate } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { storeToRefs } from "pinia";
 import { removePrefix } from "@/api/utils";
+import { useFavoritesStore } from "@/stores/favorites";
 
 const showLimit = ref<number>(50);
 const columnWidth = ref<number>(280);
@@ -401,6 +440,7 @@ const clipboardStore = useClipboardStore();
 const authStore = useAuthStore();
 const fileStore = useFileStore();
 const layoutStore = useLayoutStore();
+const favoritesStore = useFavoritesStore();
 
 const { req } = storeToRefs(fileStore);
 
@@ -478,16 +518,28 @@ const modifiedIcon = computed(() => {
   return "arrow_upward";
 });
 
+const viewIcons = {
+  list: "view_module",
+  mosaic: "grid_view",
+  "mosaic gallery": "view_list",
+} as const;
+
+const viewModes: ViewModeType[] = ["list", "mosaic", "mosaic gallery"];
+
 const viewIcon = computed(() => {
-  const icons = {
-    list: "view_module",
-    mosaic: "grid_view",
-    "mosaic gallery": "view_list",
-  };
   return authStore.user === null
-    ? icons["list"]
-    : icons[authStore.user.viewMode];
+    ? viewIcons["list"]
+    : viewIcons[authStore.user.viewMode];
 });
+
+const viewLabel = (mode: string) => {
+  const labels: Record<string, string> = {
+    list: "files.viewList",
+    mosaic: "files.viewMosaic",
+    "mosaic gallery": "files.viewGallery",
+  };
+  return t(labels[mode] ?? labels.list);
+};
 
 const headerButtons = computed(() => {
   return {
@@ -504,6 +556,61 @@ const headerButtons = computed(() => {
     copy: fileStore.selectedCount > 0 && authStore.user?.perm.create,
   };
 });
+
+const selectedItems = computed(() => {
+  if (fileStore.req === null) return [];
+  return fileStore.req.items.filter((_, index) =>
+    fileStore.selected.includes(index)
+  );
+});
+
+const selectedDirPaths = computed(() =>
+  selectedItems.value.filter((item) => item.isDir).map((item) => item.path)
+);
+
+const allSelectedAreDirs = computed(
+  () =>
+    fileStore.selectedCount > 0 &&
+    selectedDirPaths.value.length > 0 &&
+    selectedItems.value.every((item) => item.isDir)
+);
+
+const selectionAllFavorited = computed(
+  () =>
+    selectedDirPaths.value.length > 0 &&
+    selectedDirPaths.value.every((path) => favoritesStore.isFavorite(path))
+);
+
+const favoriteSelectionIcon = computed(() =>
+  selectionAllFavorited.value ? "star" : "star_border"
+);
+
+const favoriteSelectionLabel = computed(() =>
+  allSelectedAreDirs.value && selectionAllFavorited.value
+    ? t("buttons.unfavorite")
+    : t("buttons.favorite")
+);
+
+const toggleFavoriteSelection = async () => {
+  if (!allSelectedAreDirs.value) return;
+  const paths = selectedDirPaths.value;
+  if (!paths.length) return;
+  try {
+    if (selectionAllFavorited.value) {
+      for (const path of paths) {
+        await favoritesStore.remove(path);
+      }
+      $showSuccess(t("success.favoritesRemoved"));
+    } else {
+      for (const path of paths) {
+        await favoritesStore.add(path);
+      }
+      $showSuccess(t("success.favoritesAdded"));
+    }
+  } catch (e) {
+    $showError(e as Error);
+  }
+};
 
 const isMobile = computed(() => {
   return width.value <= 736;
@@ -1078,19 +1185,12 @@ const copyRealPath = () => {
   copyRealPaths(paths);
 };
 
-const switchView = async () => {
+const setView = (mode: string) => {
   layoutStore.closeHovers();
-
-  const modes = {
-    list: "mosaic",
-    mosaic: "mosaic gallery",
-    "mosaic gallery": "list",
-  };
 
   const data = {
     id: authStore.user?.id,
-    viewMode: (modes[authStore.user?.viewMode ?? "list"] ||
-      "list") as ViewModeType,
+    viewMode: mode as ViewModeType,
   };
 
   users.update(data, ["viewMode"]).catch($showError);
@@ -1099,6 +1199,17 @@ const switchView = async () => {
 
   setItemWeight();
   fillWindow();
+};
+
+const switchView = async () => {
+  const modes: Record<string, string> = {
+    list: "mosaic",
+    mosaic: "mosaic gallery",
+    "mosaic gallery": "list",
+  };
+
+  const current = authStore.user?.viewMode ?? "list";
+  setView(modes[current] || "list");
 };
 
 const uploadFunc = () => {
@@ -1191,5 +1302,11 @@ const handleEmptyAreaClick = (e: MouseEvent) => {
 
 .file-selection-margin-bottom {
   margin-bottom: 3.5rem;
+}
+
+.favorite-selection:disabled,
+.favorite-selection:disabled i {
+  color: var(--iconSecondary);
+  opacity: 0.4;
 }
 </style>

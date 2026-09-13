@@ -16,6 +16,16 @@
         <span>{{ $t("sidebar.myFiles") }}</span>
       </button>
 
+      <button
+        class="action"
+        @click="toFavorites"
+        :aria-label="$t('sidebar.myFavorites')"
+        :title="$t('sidebar.myFavorites')"
+      >
+        <i class="material-icons">star</i>
+        <span>{{ $t("sidebar.myFavorites") }}</span>
+      </button>
+
       <div v-if="user.perm.create">
         <button
           @click="showHover('newDir')"
@@ -85,14 +95,20 @@
       </router-link>
     </template>
 
-    <div
-      class="credits"
-      v-if="isFiles && !disableUsedPercentage"
-      style="width: 90%; margin: 2em 2.5em 3em 2.5em"
-    >
-      <progress-bar :val="usage.usedPercentage" size="small"></progress-bar>
-      <br />
-      {{ $t("sidebar.diskUsed", { used: usage.used, total: usage.total }) }}
+    <div class="credits storage-usage" v-if="!disableUsedPercentage">
+      <div class="storage-usage__item" v-for="s in usage" :key="s.label">
+        <p v-if="usage.length > 1" class="storage-usage__label">
+          {{ s.label }}
+        </p>
+        <progress-bar
+          class="storage-usage__bar"
+          :val="s.usedPercentage"
+          size="small"
+        ></progress-bar>
+        <p class="storage-usage__amount">
+          {{ $t("sidebar.diskUsed", { used: s.used, total: s.total }) }}
+        </p>
+      </div>
     </div>
 
     <p class="credits">
@@ -136,12 +152,10 @@ import { files as api } from "@/api";
 import ProgressBar from "@/components/ProgressBar.vue";
 import prettyBytes from "pretty-bytes";
 
-const USAGE_DEFAULT = { used: "0 B", total: "0 B", usedPercentage: 0 };
-
 export default {
   name: "sidebar",
   setup() {
-    const usage = reactive(USAGE_DEFAULT);
+    const usage = reactive([]);
     return { usage, usageAbortController: new AbortController() };
   },
   components: {
@@ -150,7 +164,7 @@ export default {
   inject: ["$showError"],
   computed: {
     ...mapState(useAuthStore, ["user", "isLoggedIn"]),
-    ...mapState(useFileStore, ["isFiles", "reload"]),
+    ...mapState(useFileStore, ["reload"]),
     ...mapState(useLayoutStore, ["currentPromptName"]),
     active() {
       return this.currentPromptName === "sidebar";
@@ -168,28 +182,36 @@ export default {
       this.usageAbortController.abort();
     },
     async fetchUsage() {
-      const path = this.$route.path.endsWith("/")
-        ? this.$route.path
-        : this.$route.path + "/";
-      let usageStats = USAGE_DEFAULT;
       if (this.disableUsedPercentage) {
-        return Object.assign(this.usage, usageStats);
+        this.usage.splice(0, this.usage.length);
+        return;
       }
+      this.abortOngoingFetchUsage();
+      const controller = new AbortController();
+      this.usageAbortController = controller;
       try {
-        this.abortOngoingFetchUsage();
-        this.usageAbortController = new AbortController();
-        const usage = await api.usage(path, this.usageAbortController.signal);
-        usageStats = {
-          used: prettyBytes(usage.used, { binary: true }),
-          total: prettyBytes(usage.total, { binary: true }),
-          usedPercentage: Math.round((usage.used / usage.total) * 100),
-        };
-      } finally {
-        return Object.assign(this.usage, usageStats);
+        const res = await api.storagesUsage(controller.signal);
+        if (controller !== this.usageAbortController) return;
+        const usageStats = (res || []).map((s) => ({
+          label: s.label,
+          used: prettyBytes(s.used, { binary: true }),
+          total: prettyBytes(s.total, { binary: true }),
+          usedPercentage:
+            s.total > 0 ? Math.round((s.used / s.total) * 100) : 0,
+        }));
+        this.usage.splice(0, this.usage.length, ...usageStats);
+      } catch {
+        // A transient failure (e.g. a refused connection while browsing)
+        // must not wipe the storage usage that is already shown in the
+        // sidebar; keep the previous snapshot and retry on next navigation.
       }
     },
     toRoot() {
       this.$router.push({ path: "/files" });
+      this.closeHovers();
+    },
+    toFavorites() {
+      this.$router.push({ path: "/favorites" });
       this.closeHovers();
     },
     toAccountSettings() {
@@ -207,10 +229,8 @@ export default {
   },
   watch: {
     $route: {
-      handler(to) {
-        if (to.path.includes("/files")) {
-          this.fetchUsage();
-        }
+      handler() {
+        this.fetchUsage();
       },
       immediate: true,
     },
@@ -220,3 +240,33 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.storage-usage {
+  width: calc(100% - 5em);
+  margin: 2em 2.5em 3em;
+}
+
+.storage-usage__item + .storage-usage__item {
+  margin-top: 1em;
+  padding-top: 0.75em;
+  border-top: 1px dashed var(--borderPrimary);
+}
+
+.storage-usage__label {
+  margin: 0 0 0.45em;
+  font-size: 1.1em;
+  font-weight: 600;
+  color: var(--textPrimary);
+}
+
+.storage-usage__bar {
+  display: block;
+  width: 100%;
+}
+
+.storage-usage__amount {
+  margin: 0.45em 0 0;
+  color: var(--textSecondary);
+}
+</style>

@@ -9,6 +9,14 @@ import (
 	"github.com/spf13/afero"
 )
 
+// Favorite describes a directory the user pinned for quick access. Path is a
+// virtual path within the user's filesystem, used for navigation and toggling.
+// RealPath is the absolute on-disk location, used for display.
+type Favorite struct {
+	Path     string `json:"path"`
+	RealPath string `json:"realPath"`
+}
+
 // ViewMode describes a view mode.
 type ViewMode string
 
@@ -36,6 +44,7 @@ type User struct {
 	HideDotfiles          bool          `json:"hideDotfiles"`
 	DateFormat            bool          `json:"dateFormat"`
 	AceEditorTheme        string        `json:"aceEditorTheme"`
+	Favorites             []Favorite    `json:"favorites"`
 }
 
 // GetRules implements rules.Provider.

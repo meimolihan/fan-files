@@ -158,6 +158,7 @@ html[data-theme="dark"] .vue-simple-progress {
 
   #listing.list .item:hover:not([aria-selected="true"]),
   .breadcrumbs a:hover,
+  .file-list-crumbs .crumb:hover,
   table tbody tr:hover,
   .dashboard #nav ul li:hover {
     background: transparent !important;

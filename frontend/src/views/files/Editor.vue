@@ -46,21 +46,56 @@
 
         <div>
           <button
+            :disabled="!canUndo"
+            :aria-label="t('buttons.undo')"
+            :title="t('buttons.undo')"
+            @click="executeEditorCommand('undo')"
+          >
+            <span><i class="material-icons">undo</i></span>
+          </button>
+          <button
+            :disabled="!canRedo"
+            :aria-label="t('buttons.redo')"
+            :title="t('buttons.redo')"
+            @click="executeEditorCommand('redo')"
+          >
+            <span><i class="material-icons">redo</i></span>
+          </button>
+          <button
+            :aria-label="t('buttons.selectAll')"
+            :title="t('buttons.selectAll')"
+            @click="selectAll"
+          >
+            <span><i class="material-icons">select_all</i></span>
+          </button>
+          <button
             :disabled="isSelectionEmpty"
+            :aria-label="t('buttons.copy')"
+            :title="t('buttons.copy')"
             @click="executeEditorCommand('copy')"
           >
             <span><i class="material-icons">content_copy</i></span>
           </button>
           <button
             :disabled="isSelectionEmpty"
+            :aria-label="t('buttons.cut')"
+            :title="t('buttons.cut')"
             @click="executeEditorCommand('cut')"
           >
             <span><i class="material-icons">content_cut</i></span>
           </button>
-          <button @click="executeEditorCommand('paste')">
+          <button
+            :aria-label="t('buttons.paste')"
+            :title="t('buttons.paste')"
+            @click="executeEditorCommand('paste')"
+          >
             <span><i class="material-icons">content_paste</i></span>
           </button>
-          <button @click="executeEditorCommand('openCommandPalette')">
+          <button
+            :aria-label="t('buttons.more')"
+            :title="t('buttons.more')"
+            @click="executeEditorCommand('openCommandPalette')"
+          >
             <span><i class="material-icons">more_vert</i></span>
           </button>
         </div>
@@ -82,6 +117,7 @@ import { files as api } from "@/api";
 import buttons from "@/utils/buttons";
 import url from "@/utils/url";
 import ace, { Ace, version as ace_version } from "ace-builds";
+import "ace-builds/esm-resolver";
 import "ace-builds/src-noconflict/ext-language_tools";
 import modelist from "ace-builds/src-noconflict/ext-modelist";
 import DOMPurify from "dompurify";
@@ -101,6 +137,7 @@ import { onBeforeRouteUpdate, useRoute, useRouter } from "vue-router";
 import { read, copy } from "@/utils/clipboard";
 
 const $showError = inject<IToastError>("$showError")!;
+const $showSuccess = inject<IToastSuccess>("$showSuccess")!;
 
 const fileStore = useFileStore();
 const authStore = useAuthStore();
@@ -126,6 +163,30 @@ const katexOptions = {
 marked.use(markedKatex(katexOptions));
 
 const isSelectionEmpty = ref(true);
+const canUndo = ref(false);
+const canRedo = ref(false);
+
+const syncUndoState = () => {
+  const undoManager = editor.value?.session.getUndoManager();
+  canUndo.value = !!undoManager?.hasUndo();
+  canRedo.value = !!undoManager?.hasRedo();
+};
+
+const selectAll = () => {
+  editor.value?.selectAll();
+  editor.value?.focus();
+};
+
+const applyEditorTheme = () => {
+  const fallback = authStore.user?.aceEditorTheme ?? "";
+  const current = editor.value?.renderer.getTheme();
+  const next = getEditorTheme(fallback);
+  if (current && current !== next) {
+    editor.value?.setTheme(next);
+  }
+};
+
+let themeObserver: MutationObserver | null = null;
 
 const executeEditorCommand = (name: string) => {
   if (name == "paste") {
@@ -150,6 +211,9 @@ const executeEditorCommand = (name: string) => {
   if (name == "copy" || name == "cut") {
     const selectedText = editor.value?.getCopyText();
     copy({ text: selectedText });
+    $showSuccess(
+      t(name === "copy" ? "success.contentCopied" : "success.contentCut")
+    );
   }
   editor.value?.execCommand(name);
 };
@@ -190,11 +254,22 @@ onMounted(() => {
       }
     });
   }
+
+  themeObserver = new MutationObserver(() => {
+    // Re-apply the ace theme when the app theme changes so the editor
+    // background follows the light/dark mode.
+    requestAnimationFrame(applyEditorTheme);
+  });
+  themeObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class", "data-theme"],
+  });
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener("keydown", keyEvent);
   window.removeEventListener("beforeunload", handlePageChange);
+  themeObserver?.disconnect();
   editor.value?.destroy();
 });
 
@@ -233,6 +308,9 @@ const initEditor = (fileContent: string) => {
 
   editor.value.setFontSize(fontSize.value);
   editor.value.focus();
+
+  editor.value.on("change", syncUndoState);
+  syncUndoState();
 
   const selection = editor.value?.getSelection();
   selection.on("changeSelection", function () {
@@ -345,6 +423,9 @@ const preview = () => {
   outline: none;
   opacity: 0.8;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .editor-header > div > button:hover:not(:disabled) {
@@ -358,5 +439,46 @@ const preview = () => {
 
 .editor-header > div > button > span > i {
   font-size: 1.2rem;
+}
+
+@media (max-width: 736px) {
+  .editor-header {
+    flex-wrap: wrap;
+    gap: 0.25em;
+    padding: 0.25em 0.5em;
+  }
+
+  .editor-header .breadcrumbs {
+    width: 100%;
+    height: 2.6em;
+  }
+
+  .editor-header > div {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    flex-wrap: nowrap;
+    background: var(--surfacePrimary);
+    border-bottom: 1px solid var(--borderPrimary);
+    padding: 0.3em 0.2em;
+    margin-bottom: 0.2em;
+  }
+
+  .editor-header > div > button {
+    flex: 1;
+    min-width: 0;
+    min-height: 44px;
+    border-radius: 10px;
+  }
+
+  .editor-header > div > button:active {
+    opacity: 1;
+    background: var(--hover);
+  }
+
+  .editor-font-size {
+    display: none;
+  }
 }
 </style>

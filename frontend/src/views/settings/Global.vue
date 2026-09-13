@@ -253,7 +253,7 @@ import Themes from "@/components/settings/Themes.vue";
 import UserForm from "@/components/settings/UserForm.vue";
 import { useLayoutStore } from "@/stores/layout";
 import { enableExec } from "@/utils/constants";
-import { getTheme, setTheme } from "@/utils/theme";
+import { setTheme } from "@/utils/theme";
 import Errors from "@/views/Errors.vue";
 import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -362,7 +362,7 @@ const save = async () => {
     .split(" ")
     .filter((s) => s !== "");
 
-  if (newSettings.branding.theme !== getTheme()) {
+  if (newSettings.branding.theme !== originalSettings.value?.branding.theme) {
     setTheme(newSettings.branding.theme);
   }
 

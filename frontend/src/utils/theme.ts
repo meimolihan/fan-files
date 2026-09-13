@@ -36,15 +36,16 @@ export const getMediaPreference = (): UserTheme => {
 };
 
 export const getEditorTheme = (themeName: string) => {
+  const wantsDark =
+    document.documentElement.classList.contains("dark") ||
+    document.documentElement.dataset.theme === "dark";
   if (!themeName.startsWith("ace/theme/")) {
     themeName = `ace/theme/${themeName}`;
   }
   const themeKey = themeName.replace("ace/theme/", "");
-  if (themesByName[themeKey] !== undefined) {
+  const pinned = themesByName[themeKey];
+  if (pinned && (pinned.isDark ?? false) === wantsDark) {
     return themeName;
-  } else if (getTheme() === "dark") {
-    return "ace/theme/twilight";
-  } else {
-    return "ace/theme/chrome";
   }
+  return wantsDark ? "ace/theme/twilight" : "ace/theme/chrome";
 };

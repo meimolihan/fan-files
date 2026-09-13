@@ -40,58 +40,71 @@
       <div v-else-if="backups.length === 0" class="empty-state">
         {{ t("backup.noBackups") }}
       </div>
-      <table v-else class="backup-table">
-        <thead>
-          <tr>
-            <th>{{ t("backup.name") }}</th>
-            <th>{{ t("backup.size") }}</th>
-            <th>{{ t("backup.date") }}</th>
-            <th>{{ t("backup.actions") }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="backup in backups" :key="backup.name">
-            <td>{{ backup.name }}</td>
-            <td>{{ formatSize(backup.size) }}</td>
-            <td>{{ formatDate(backup.modTime) }}</td>
-            <td class="actions">
-              <button
-                class="btn btn-sm btn-secondary"
-                @click="restoreBackup(backup.name)"
-                :disabled="restoring === backup.name"
-              >
-                <span v-if="restoring === backup.name"
-                  >{{ t("backup.restoring") }}...</span
+      <div v-else class="table-wrap">
+        <table class="backup-table">
+          <thead>
+            <tr>
+              <th>{{ t("backup.name") }}</th>
+              <th>{{ t("backup.size") }}</th>
+              <th>{{ t("backup.date") }}</th>
+              <th>{{ t("backup.actions") }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="backup in backups" :key="backup.name">
+              <td>{{ backup.name }}</td>
+              <td :data-label="t('backup.size')">
+                {{ formatSize(backup.size) }}
+              </td>
+              <td :data-label="t('backup.date')">
+                {{ formatDate(backup.modTime) }}
+              </td>
+              <td class="actions">
+                <button
+                  class="btn btn-sm btn-secondary"
+                  @click="restoreBackup(backup.name)"
+                  :disabled="restoring === backup.name"
                 >
-                <span v-else>{{ t("backup.restore") }}</span>
-              </button>
-              <button
-                class="btn btn-sm btn-danger"
-                @click="deleteBackup(backup.name)"
-                :disabled="deleting === backup.name"
-              >
-                <span v-if="deleting === backup.name"
-                  >{{ t("backup.deleting") }}...</span
+                  <span v-if="restoring === backup.name"
+                    >{{ t("backup.restoring") }}...</span
+                  >
+                  <span v-else>{{ t("backup.restore") }}</span>
+                </button>
+                <button
+                  class="btn btn-sm btn-danger"
+                  @click="deleteBackup(backup.name)"
+                  :disabled="deleting === backup.name"
                 >
-                <span v-else>{{ t("backup.delete") }}</span>
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+                  <span v-if="deleting === backup.name"
+                    >{{ t("backup.deleting") }}...</span
+                  >
+                  <span v-else>{{ t("backup.delete") }}</span>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <div class="settings-section" v-if="jobStatus">
       <h3>{{ t("backup.jobStatus") }}</h3>
       <div class="job-status" :class="jobStatus.status">
+        <div class="job-status__head">
+          <span class="job-status__label">
+            <span class="job-status__dot"></span>
+            {{ t("backup." + jobStatus.status) }}
+          </span>
+          <span class="job-status__percent">{{ jobStatus.progress }}%</span>
+        </div>
         <div class="progress-bar">
           <div
             class="progress-fill"
             :style="{ width: jobStatus.progress + '%' }"
           ></div>
         </div>
-        <p>{{ jobStatus.message }}</p>
-        <small>{{ t("backup.progress") }}: {{ jobStatus.progress }}%</small>
+        <p>{{ jobMessage(jobStatus.message) }}</p>
+        <small v-if="jobStatus.file">{{ jobStatus.file }}</small>
       </div>
     </div>
   </div>
@@ -236,6 +249,34 @@ function formatDate(dateString: string): string {
   }
 }
 
+const jobMessageMap: Record<string, string> = {
+  "Backup started": "backup.msgBackupStarted",
+  "Creating backup...": "backup.msgCreatingBackup",
+  "Cleaning old backups...": "backup.msgCleaningBackups",
+  "Backup completed successfully": "backup.msgBackupCompleted",
+  "Restore started": "backup.msgRestoreStarted",
+  "Stopping service...": "backup.msgStoppingService",
+  "Restoring data...": "backup.msgRestoringData",
+  "Starting service...": "backup.msgStartingService",
+  "Restore completed successfully": "backup.msgRestoreCompleted",
+};
+
+const jobFailedPrefixMap: Record<string, string> = {
+  "Backup failed": "backup.msgBackupFailed",
+  "Restore failed": "backup.msgRestoreFailed",
+};
+
+function jobMessage(msg: string): string {
+  for (const [prefix, key] of Object.entries(jobFailedPrefixMap)) {
+    if (msg.startsWith(prefix)) {
+      const detail = msg.slice(prefix.length).replace(/^:\s*/, "");
+      return detail ? `${t(key)}: ${detail}` : t(key);
+    }
+  }
+  const key = jobMessageMap[msg];
+  return key ? t(key) : msg;
+}
+
 onMounted(() => {
   loadBackups();
 });
@@ -248,22 +289,24 @@ onMounted(() => {
 }
 
 .settings-section {
-  margin-bottom: 32px;
+  margin-bottom: 24px;
   padding: 20px;
-  background: var(--surface-color);
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: var(--surfacePrimary);
+  border: 1px solid var(--borderPrimary);
+  border-radius: var(--ui-radius);
+  box-shadow: var(--ui-shadow-1);
 }
 
 .settings-section h2 {
   margin: 0 0 8px;
   color: var(--text-primary);
+  font-size: 1.35rem;
 }
 
 .settings-section h3 {
-  margin: 24px 0 16px;
+  margin: 8px 0 16px;
   color: var(--text-primary);
-  font-size: 1.1rem;
+  font-size: 1.05rem;
 }
 
 .description {
@@ -290,18 +333,21 @@ onMounted(() => {
 }
 
 .form-group input {
-  padding: 10px 12px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background: var(--input-bg);
-  color: var(--text-primary);
+  padding: 11px 14px;
+  border: 1px solid var(--borderPrimary);
+  border-radius: var(--ui-radius-sm);
+  background: var(--surfacePrimary);
+  color: var(--textPrimary);
   font-size: 14px;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .form-group input:focus {
   outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.2);
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.15);
 }
 
 .help-text {
@@ -312,7 +358,7 @@ onMounted(() => {
 .btn {
   padding: 10px 20px;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--ui-radius-sm);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -351,11 +397,37 @@ onMounted(() => {
 .actions {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
+}
+
+.actions .btn {
+  white-space: nowrap;
+}
+
+.table-wrap {
+  overflow-x: auto;
 }
 
 .backup-table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
+}
+
+.backup-table th:first-child {
+  width: 36%;
+}
+
+.backup-table th:nth-child(2) {
+  width: 14%;
+}
+
+.backup-table th:nth-child(3) {
+  width: 22%;
+}
+
+.backup-table th:nth-child(4) {
+  width: 28%;
 }
 
 .backup-table th,
@@ -363,6 +435,109 @@ onMounted(() => {
   padding: 12px 16px;
   text-align: left;
   border-bottom: 1px solid var(--border-color);
+}
+
+.backup-table td:first-child {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.backup-table td:nth-child(2),
+.backup-table td:nth-child(3) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 736px) {
+  .settings-page {
+    padding: 12px;
+  }
+
+  .settings-section {
+    padding: 16px;
+  }
+
+  .backup-form {
+    max-width: none;
+  }
+
+  .backup-form .form-group input {
+    font-size: 16px;
+  }
+
+  .backup-form .btn-primary {
+    width: 100%;
+  }
+
+  .table-wrap {
+    overflow: visible;
+  }
+
+  .backup-table thead {
+    display: none;
+  }
+
+  .backup-table,
+  .backup-table tbody,
+  .backup-table tr {
+    display: block;
+    width: 100%;
+  }
+
+  .backup-table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .backup-table tr {
+    margin: 0;
+    padding: 12px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--surfacePrimary);
+    box-shadow: var(--ui-shadow-1);
+  }
+
+  .backup-table td {
+    display: block;
+    width: 100%;
+    padding: 2px 0;
+    border-bottom: none;
+  }
+
+  .backup-table td:first-child {
+    margin-bottom: 4px;
+    font-size: 1.05em;
+    font-weight: 600;
+    word-break: break-all;
+  }
+
+  .backup-table td:nth-child(2),
+  .backup-table td:nth-child(3) {
+    display: inline-block;
+    width: auto;
+    margin-right: 12px;
+    font-size: 0.85em;
+    color: var(--text-secondary);
+  }
+
+  .backup-table td::before {
+    content: attr(data-label);
+    margin-right: 4px;
+    color: var(--text-secondary);
+  }
+
+  .backup-table .actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .backup-table .actions .btn {
+    flex: 1;
+  }
 }
 
 .backup-table th {
@@ -391,38 +566,82 @@ onMounted(() => {
 
 .job-status {
   padding: 16px;
-  border-radius: 8px;
-  background: var(--surface-color);
+  border-radius: var(--ui-radius-sm);
+  background: var(--surfacePrimary);
+  border: 1px solid var(--borderPrimary);
 }
 
-.job-status.pending,
-.job-status.running {
-  border-left: 4px solid var(--warning-color);
+.job-status__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
 }
 
-.job-status.completed {
-  border-left: 4px solid var(--success-color);
+.job-status__label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--textPrimary);
 }
 
-.job-status.failed {
-  border-left: 4px solid var(--danger-color);
+.job-status__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--icon-orange);
+}
+
+.job-status.running .job-status__dot {
+  background: var(--blue);
+}
+
+.job-status.completed .job-status__dot {
+  background: var(--icon-green);
+}
+
+.job-status.failed .job-status__dot {
+  background: var(--red);
+}
+
+.job-status__percent {
+  font-weight: 600;
+  color: var(--textPrimary);
+}
+
+.job-status p {
+  margin: 10px 0 4px;
+  color: var(--textSecondary);
 }
 
 .progress-bar {
-  height: 6px;
-  background: var(--border-color);
-  border-radius: 3px;
+  height: 8px;
+  background: var(--surfaceSecondary);
+  border-radius: 999px;
   overflow: hidden;
-  margin-bottom: 12px;
 }
 
 .progress-fill {
   height: 100%;
-  background: var(--primary-color);
+  background: var(--blue);
+  border-radius: 999px;
   transition: width 0.3s ease;
 }
 
+.job-status.completed .progress-fill {
+  background: var(--icon-green);
+}
+
+.job-status.failed .progress-fill {
+  background: var(--red);
+}
+
 .job-status small {
-  color: var(--text-secondary);
+  display: block;
+  margin-top: 2px;
+  color: var(--textPrimary);
+  font-size: 12px;
+  word-break: break-all;
 }
 </style>

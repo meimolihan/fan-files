@@ -4,6 +4,7 @@
     v-on:change="change"
     :value="aceEditorTheme"
   >
+    <option value="">{{ t("settings.editorThemeDefault") }}</option>
     <option v-for="theme in themes" :value="theme.theme" :key="theme.theme">
       {{ theme.name }}
     </option>
@@ -12,7 +13,10 @@
 
 <script setup lang="ts">
 import { type SelectHTMLAttributes } from "vue";
+import { useI18n } from "vue-i18n";
 import { themes } from "ace-builds/src-noconflict/ext-themelist";
+
+const { t } = useI18n();
 
 defineProps<{
   aceEditorTheme: string;

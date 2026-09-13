@@ -1,6 +1,7 @@
 package fbhttp
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -38,6 +39,42 @@ func TestStoragesEndpointListsExtraStorages(t *testing.T) {
 	body.WriteString(rec.Body.String())
 	if !strings.Contains(body.String(), "存储空间1") || !strings.Contains(body.String(), "存储空间2") {
 		t.Errorf("storages response = %q, want both 存储空间1 and 存储空间2", body.String())
+	}
+}
+
+func TestStoragesUsageReportsPerStorage(t *testing.T) {
+	key := []byte("test-signing-key")
+	perm := users.Permissions{Create: true}
+	st := scopedUserStorage(t, t.TempDir(), perm, key)
+	if err := st.Settings.Save(&settings.Settings{Key: key}); err != nil {
+		t.Fatal(err)
+	}
+	server := &settings.Server{
+		Root:       t.TempDir(),
+		ExtraRoots: []settings.ExtraRoot{{Path: t.TempDir(), Label: "存储空间2"}},
+	}
+
+	req, _ := http.NewRequest(http.MethodGet, "/", http.NoBody)
+	req.Header.Set("X-Auth", signToken(t, perm, key))
+	rec := httptest.NewRecorder()
+	handle(storagesUsageHandler, "", st, server).ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d body=%q", rec.Code, rec.Body.String())
+	}
+
+	var usages []StorageUsage
+	if err := json.Unmarshal(rec.Body.Bytes(), &usages); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if len(usages) != 2 {
+		t.Fatalf("expected 2 storage usages, got %d", len(usages))
+	}
+	if usages[0].Label != "存储空间1" || usages[1].Label != "存储空间2" {
+		t.Errorf("labels = %q, %q, want 存储空间1 then 存储空间2", usages[0].Label, usages[1].Label)
+	}
+	if usages[0].Total == 0 || usages[1].Total == 0 {
+		t.Errorf("expected non-zero totals, got %+v", usages)
 	}
 }
 

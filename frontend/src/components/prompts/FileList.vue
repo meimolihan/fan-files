@@ -1,5 +1,41 @@
 <template>
   <div>
+    <div class="file-list-crumbs">
+      <span
+        class="crumb"
+        tabindex="0"
+        role="button"
+        :aria-label="$t('files.home')"
+        :title="$t('files.home')"
+        @click="goHome"
+      >
+        <i class="material-icons">home</i>
+      </span>
+      <template v-for="(crumb, index) in crumbs" :key="crumb.url">
+        <i class="material-icons chevron">keyboard_arrow_right</i>
+        <span
+          :class="['crumb', { 'crumb--current': index === crumbs.length - 1 }]"
+          tabindex="0"
+          role="button"
+          @click="goAt(crumb.url, index)"
+        >
+          {{ crumb.name }}
+        </span>
+      </template>
+      <span
+        v-if="crumbs.length > 0"
+        class="crumb up-btn"
+        tabindex="0"
+        role="button"
+        :aria-label="$t('prompts.upOneLevel')"
+        :title="$t('prompts.upOneLevel')"
+        @click="goUp"
+      >
+        <i class="material-icons">arrow_upward</i>
+        <span class="up-btn__label">{{ $t("prompts.upOneLevel") }}</span>
+      </span>
+    </div>
+
     <ul class="file-list">
       <li
         @click="itemClick"
@@ -61,6 +97,28 @@ export default {
     nav() {
       return decodeURIComponent(this.current);
     },
+    crumbs() {
+      const parts = this.current.split("/").filter((s) => s !== "");
+      const segments = parts.slice(1);
+
+      let acc = "/" + parts[0] + "/";
+      const out = [];
+      for (const segment of segments) {
+        acc += segment + "/";
+        let name = segment;
+        try {
+          name = decodeURIComponent(segment);
+        } catch {
+          // keep the raw segment if it isn't valid percent-encoding
+        }
+        out.push({ name, url: acc });
+      }
+      return out;
+    },
+    homeUrl() {
+      const parts = this.current.split("/").filter((s) => s !== "");
+      return "/" + parts[0] + "/";
+    },
   },
   mounted() {
     this.fillOptions(this.req);
@@ -110,7 +168,9 @@ export default {
       // Retrieves the URL of the directory the user
       // just clicked in and fill the options with its
       // content.
-      const uri = event.currentTarget.dataset.url;
+      this.load(event.currentTarget.dataset.url);
+    },
+    load: function (uri) {
       this.abortOngoingNext();
       this.nextAbortController = new AbortController();
       files
@@ -122,6 +182,18 @@ export default {
           }
           this.$showError(e);
         });
+    },
+    goAt: function (url, index) {
+      // Clicking the current (last) crumb is a no-op.
+      if (index === this.crumbs.length - 1) return;
+      this.load(url);
+    },
+    goHome: function () {
+      if (this.current === this.homeUrl) return;
+      this.load(this.homeUrl);
+    },
+    goUp: function () {
+      this.load(url.removeLastDir(this.current) + "/");
     },
     touchstart(event) {
       const url = event.currentTarget.dataset.url;
@@ -184,3 +256,68 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.file-list-crumbs {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 0.3em 0.2em 0.4em;
+  border-bottom: 1px solid var(--divider);
+  margin-bottom: 0.4em;
+  user-select: none;
+}
+
+.file-list-crumbs::-webkit-scrollbar {
+  display: none;
+}
+
+.file-list-crumbs .crumb {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 0.2em;
+  padding: 0.25em 0.5em;
+  border-radius: 0.4em;
+  color: var(--textPrimary);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.file-list-crumbs .crumb:hover,
+.file-list-crumbs .crumb:focus-visible {
+  background: var(--divider);
+  outline: none;
+}
+
+.file-list-crumbs .crumb .material-icons {
+  font-size: 1em;
+}
+
+.file-list-crumbs .crumb--current {
+  color: var(--textSecondary);
+  font-weight: 600;
+  cursor: default;
+}
+
+.file-list-crumbs .crumb--current:hover {
+  background: transparent;
+}
+
+.file-list-crumbs .chevron {
+  font-size: 1em;
+  opacity: 0.5;
+  flex: 0 0 auto;
+}
+
+.file-list-crumbs .up-btn {
+  margin-left: auto;
+  color: var(--blue);
+}
+
+.file-list-crumbs .up-btn .up-btn__label {
+  font-size: 0.85em;
+}
+</style>

@@ -243,6 +243,22 @@ html[data-ui] .vue-simple-progress-bar {
   border-radius: 999px;
 }
 
+/* mobile view switcher ---------------------------------------------- */
+html[data-ui] .view-switch {
+  border: 1px solid var(--borderPrimary);
+}
+html[data-ui] .view-switch__segment {
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+html[data-ui] .view-switch__segment.active {
+  color: var(--background);
+  background: linear-gradient(90deg, var(--blue), var(--dark-blue));
+  box-shadow: var(--ui-shadow-2);
+}
+
 /* context menu / dropdown ------------------------------------------- */
 html[data-ui] .context-menu {
   border-radius: var(--ui-radius-sm);

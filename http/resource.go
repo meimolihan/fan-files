@@ -622,3 +622,32 @@ var diskUsage = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (
 		Used:  usage.Used,
 	})
 })
+
+// StorageUsage describes the disk usage of a single storage root: its label
+// plus the total/used bytes reported for the underlying filesystem.
+type StorageUsage struct {
+	Label string `json:"label"`
+	Total uint64 `json:"total"`
+	Used  uint64 `json:"used"`
+}
+
+// storagesUsageHandler reports disk usage for every storage root visible to
+// the user, primary first. A broken mount is reported with zeroes instead of
+// failing the whole request, so the sidebar can keep rendering the remaining
+// storages.
+var storagesUsageHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+	roots := storageRoots(d)
+	usages := make([]StorageUsage, 0, len(roots))
+	for _, root := range roots {
+		var (
+			total uint64
+			used  uint64
+		)
+		if usage, err := disk.UsageWithContext(r.Context(), root.Path); err == nil {
+			total = usage.Total
+			used = usage.Used
+		}
+		usages = append(usages, StorageUsage{Label: root.Label, Total: total, Used: used})
+	}
+	return renderJSON(w, r, usages)
+})
