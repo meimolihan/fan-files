@@ -398,16 +398,16 @@ func (f *multiDirFile) Readdirnames(count int) ([]string, error) {
 	return names, nil
 }
 
-func (f *multiDirFile) Read(p []byte) (int, error)              { return 0, io.EOF }
-func (f *multiDirFile) ReadAt(p []byte, off int64) (int, error) { return 0, io.EOF }
-func (f *multiDirFile) Seek(offset int64, whence int) (int64, error) {
+func (f *multiDirFile) Read(_ []byte) (int, error)               { return 0, io.EOF }
+func (f *multiDirFile) ReadAt(_ []byte, _ int64) (int, error)    { return 0, io.EOF }
+func (f *multiDirFile) Seek(_ int64, _ int) (int64, error) {
 	return 0, os.ErrInvalid
 }
 func (f *multiDirFile) Stat() (os.FileInfo, error)  { return f.m.Stat("/") }
 func (f *multiDirFile) Sync() error                 { return nil }
-func (f *multiDirFile) Truncate(size int64) error   { return os.ErrInvalid }
-func (f *multiDirFile) Write(p []byte) (int, error) { return 0, os.ErrInvalid }
-func (f *multiDirFile) WriteString(s string) (int, error) {
+func (f *multiDirFile) Truncate(_ int64) error      { return os.ErrInvalid }
+func (f *multiDirFile) Write(_ []byte) (int, error) { return 0, os.ErrInvalid }
+func (f *multiDirFile) WriteString(_ string) (int, error) {
 	return 0, os.ErrInvalid
 }
 func (f *multiDirFile) WriteAt(p []byte, off int64) (int, error) {

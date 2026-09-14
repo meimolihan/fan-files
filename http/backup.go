@@ -154,7 +154,7 @@ func (j *backupJob) update(status, message string, progress int) {
 	j.Progress = progress
 }
 
-var backupListHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+var backupListHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, _ *data) (int, error) {
 	_, backupDir, err := getBackupConfig()
 	if err != nil {
 		return http.StatusInternalServerError, err
@@ -171,7 +171,7 @@ var backupListHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d
 	})
 })
 
-var backupCreateHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+var backupCreateHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, _ *data) (int, error) {
 	var req backupRequest
 	if r.Body != nil {
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -239,7 +239,7 @@ var backupCreateHandler = withAdmin(func(w http.ResponseWriter, r *http.Request,
 	})
 })
 
-var backupRestoreHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+var backupRestoreHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, _ *data) (int, error) {
 	var req struct {
 		Dir  string `json:"dir,omitempty"`
 		File string `json:"file,omitempty"`
@@ -445,11 +445,11 @@ func cleanOldBackups(backupDir string, keepNum int) {
 }
 
 func stopService(name string) {
-	exec.Command("systemctl", "stop", name).Run()
+	_ = exec.Command("systemctl", "stop", name).Run()
 }
 
 func startService(name string) {
-	exec.Command("systemctl", "start", name).Run()
+	_ = exec.Command("systemctl", "start", name).Run()
 }
 
 func isServiceActive(name string) bool {
