@@ -34,6 +34,9 @@ vi.mock("@/stores/layout", () => ({
     closeHovers: harness.closeHovers,
   }),
 }));
+vi.mock("@/stores/favorites", () => ({
+  useFavoritesStore: () => ({ ids: [] }),
+}));
 vi.mock("@/stores/upload", () => ({
   useUploadStore: () => ({ upload: harness.queueUpload }),
 }));
