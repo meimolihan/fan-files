@@ -1,0 +1,80 @@
+name: Release
+
+# 推送 v 开头 tag（如 v1.0.0）时自动编译并创建 GitHub Release：
+#   fan-files_linux_amd64 / fan-files_linux_arm64
+# 版本号来自 version/version.go（由 scripts/build-and-push.sh 维护）。
+# Docker 镜像由 build.yml 另行构建（latest + 版本标签）。
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v6
+        with:
+          package_json_file: frontend/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.x'
+
+      - name: Build frontend assets
+        working-directory: frontend
+        run: |
+          pnpm install --frozen-lockfile
+          CI=true pnpm run build
+
+      - name: Read version from version.go
+        id: ver
+        run: echo "ver=$(sed -n 's/.*Version = "\(.*\)"/\1/p' version/version.go | head -1)" >> "$GITHUB_OUTPUT"
+
+      - name: Build Go binary (linux/amd64)
+        env:
+          CGO_ENABLED: '0'
+          GOOS: linux
+          GOARCH: amd64
+        run: |
+          mkdir -p bin
+          go build -buildvcs=false -trimpath \
+            -ldflags="-s -w -X github.com/meimolihan/fan-files/version.CommitSHA=${GITHUB_SHA:0:7}" \
+            -o bin/fan-files_linux_amd64 .
+          ./bin/fan-files_linux_amd64 version
+
+      - name: Build Go binary (linux/arm64)
+        env:
+          CGO_ENABLED: '0'
+          GOOS: linux
+          GOARCH: arm64
+        run: |
+          go build -buildvcs=false -trimpath \
+            -ldflags="-s -w -X github.com/meimolihan/fan-files/version.CommitSHA=${GITHUB_SHA:0:7}" \
+            -o bin/fan-files_linux_arm64 .
+
+      - name: List release assets
+        run: ls -lh bin/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            bin/fan-files_linux_amd64
+            bin/fan-files_linux_arm64
+          generate_release_notes: true
