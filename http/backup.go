@@ -290,7 +290,7 @@ var backupRestoreHandler = withAdmin(func(w http.ResponseWriter, r *http.Request
 	})
 })
 
-var backupDeleteHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+var backupDeleteHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, _ *data) (int, error) {
 	vars := mux.Vars(r)
 	filename := vars["name"]
 	if filename == "" {
@@ -317,7 +317,7 @@ var backupDeleteHandler = withAdmin(func(w http.ResponseWriter, r *http.Request,
 	})
 })
 
-var backupJobStatusHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+var backupJobStatusHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, _ *data) (int, error) {
 	vars := mux.Vars(r)
 	jobID := vars["id"]
 	if jobID == "" {

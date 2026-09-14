@@ -410,7 +410,7 @@ func (f *multiDirFile) Write(_ []byte) (int, error) { return 0, os.ErrInvalid }
 func (f *multiDirFile) WriteString(_ string) (int, error) {
 	return 0, os.ErrInvalid
 }
-func (f *multiDirFile) WriteAt(p []byte, off int64) (int, error) {
+func (f *multiDirFile) WriteAt(_ []byte, _ int64) (int, error) {
 	return 0, os.ErrInvalid
 }
 func (f *multiDirFile) Close() error { return nil }
