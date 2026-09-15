@@ -2,12 +2,10 @@ name: Docker
 
 # 构建并推送 multi-arch Docker 镜像（linux/amd64 + linux/arm64）：
 #   push v* tag  -> mobufan/fan-files:v1.0.2 + latest
-#   push main    -> mobufan/fan-files:latest
-# Dockerfile 为自包含多阶段构建，可直接 buildx 交叉编译两种架构。
+# 仅由 scripts/build-and-push.sh 打 v* tag 时触发，日常 push 不构建。
 
 on:
   push:
-    branches: [ "main" ]
     tags: [ "v*" ]
   workflow_dispatch:
 
@@ -47,7 +45,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
             type=semver,pattern={{version}},enable=${{ startsWith(github.ref, 'refs/tags/v') }}
 
       - name: Build and push Docker image
