@@ -31,6 +31,7 @@ import (
 	"github.com/meimolihan/fan-files/settings"
 	"github.com/meimolihan/fan-files/storage"
 	"github.com/meimolihan/fan-files/users"
+	"github.com/meimolihan/fan-files/version"
 )
 
 var (
@@ -77,6 +78,7 @@ func init() {
 	cobra.MousetrapHelpText = ""
 
 	rootCmd.SetVersionTemplate("fan-files version {{printf \"%s\" .Version}}\n")
+	rootCmd.Version = version.Version
 
 	// Flags available across the whole program
 	persistent := rootCmd.PersistentFlags()
