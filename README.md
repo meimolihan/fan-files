@@ -55,6 +55,22 @@ bash scripts/install.sh -y -p 8678 -d /var/lib/fan-files -r /vol1/1000 --extra-r
 | 开机自启 | `systemctl enable fan-files` |
 | 禁用自启 | `systemctl disable fan-files` |
 
+## CLI 管理命令
+
+二进制自带管理命令（`uninstall` 需 root）：
+
+| 命令 | 说明 |
+|------|------|
+| `fan-files status` | 显示运行方式（systemd / Docker / 直接运行）、PID、监听端口、运行时长、内存、数据目录 |
+| `fan-files uninstall [-y] [--purge\|--keep-data]` | 停止并移除服务/容器/进程，删除二进制与安装记录；可选删除数据目录 |
+| `fan-files --version` / `fan-files version` | 显示版本号 |
+
+```bash
+fan-files status
+sudo fan-files uninstall -y            # 免确认卸载，保留数据目录
+sudo fan-files uninstall -y --purge    # 免确认卸载，并删除数据目录
+```
+
 ## 卸载
 
 ```bash
