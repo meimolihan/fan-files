@@ -154,8 +154,8 @@ curl -X DELETE -H "X-Auth: $TOKEN" http://localhost:8678/api/backup/FanFiles-xxx
 # 交互式：输入版本号，确认后构建、提交、打 tag、推送、创建 Release
 ./scripts/build-and-push.sh v1.0.1
 
-# 全自动（需先 gh auth login）
-./scripts/build-and-push.sh v1.0.1 --yes
+# 全自动（需先 gh auth login），-m 可附加发版备注
+./scripts/build-and-push.sh v1.0.1 --yes -m "本次更新内容"
 ```
 
 产物：`bin/fan-files`、`bin/fan-files_linux_amd64`（上传至 GitHub Release）。

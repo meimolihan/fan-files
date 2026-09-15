@@ -81,6 +81,7 @@ jobs:
           files: |
             bin/fan-files_linux_amd64
             bin/fan-files_linux_arm64
+          body_path: RELEASE_NOTES.md
           generate_release_notes: true
 
   docker:
