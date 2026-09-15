@@ -2,9 +2,9 @@
 #
 # fan-files - 发布脚本（触发 GitHub Actions 自动构建）
 # 不在本地编译任何产物：仅更新版本号、推送代码并打 v 开头 tag。
-# 推送 tag 后由 GitHub Actions 自动完成全部编译与发布：
-#   release.yml -> amd64/arm64 二进制并创建 GitHub Release（版本跟随 version/version.go）
-#   build.yml   -> multi-arch Docker 镜像（latest + 版本标签）
+# 推送 tag 后由 GitHub Actions 自动完成全部编译与发布（单条 workflow run）：
+#   release.yml -> amd64/arm64 二进制创建 GitHub Release（版本跟随 version/version.go）
+#                  + multi-arch Docker 镜像（latest + 版本标签）
 #
 # Usage:
 #   TAG(必填) 形如 v1.0.0; --yes 免交互
