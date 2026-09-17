@@ -1,42 +1,60 @@
-name: Release
-
-# 推送 v 开头 tag（由 scripts/build-and-push.sh 打出）时自动：
-#   1) 编译并创建 GitHub Release（fan-files_linux_amd64 / fan-files_linux_arm64）
-#   2) 构建并推送 multi-arch Docker 镜像（mobufan/fan-files:latest + 版本标签）
-# 一次发版只产生一条 workflow run（jobs: release -> docker）。
+name: Release Pipeline
 
 on:
-  push:
-    tags:
-      - 'v*'
   workflow_dispatch:
+    inputs:
+      tag:
+        description: '要构建的标签 (例如: v1.0.0)'
+        required: true
+        type: string
 
 permissions:
   contents: write
+  packages: write
 
 concurrency:
-  group: release-${{ github.ref }}
-  cancel-in-progress: true
+  group: release-${{ github.ref_name || github.event.inputs.tag }}
+  cancel-in-progress: false
 
 env:
-  REGISTRY: docker.io
-  IMAGE_NAME: mobufan/fan-files
+  RELEASE_TAG: ${{ github.ref_name || github.event.inputs.tag }}
+  DOCKERHUB_IMAGE: mobufan/fan-files
+  GHCR_IMAGE: ghcr.io/${{ github.repository }}
 
 jobs:
-  release:
+  build-binaries:
+    name: 编译二进制 (linux amd64 + arm64 + 内置前端)
     runs-on: ubuntu-latest
+    timeout-minutes: 45
+    outputs:
+      built: ${{ steps.build.outputs.built }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ format('refs/tags/{0}', github.event.inputs.tag) }}
 
-      - uses: pnpm/action-setup@v6
+      - name: Validate tag format
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if [[ ! "${{ github.event.inputs.tag }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+.*$ ]]; then
+            echo "错误: 标签格式无效，必须以 'v' 开头，例如: v1.0.0"
+            exit 1
+          fi
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
         with:
           package_json_file: frontend/package.json
-      - uses: actions/setup-node@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
         with:
           node-version: '24'
           cache: pnpm
           cache-dependency-path: frontend/pnpm-lock.yaml
-      - uses: actions/setup-go@v5
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
         with:
           go-version: '1.26.x'
 
@@ -72,68 +90,147 @@ jobs:
             -ldflags="-s -w -X github.com/meimolihan/fan-files/version.CommitSHA=${GITHUB_SHA:0:7}" \
             -o bin/fan-files_linux_arm64 .
 
-      - name: List release assets
-        run: ls -lh bin/
+      - name: Verify build outputs
+        id: build
+        run: |
+          set -e
+          ls -lh bin/fan-files_linux_amd64 bin/fan-files_linux_arm64
+          echo "built=true" >> "$GITHUB_OUTPUT"
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+      - name: Upload binaries as artifacts
+        if: steps.build.outputs.built == 'true'
+        uses: actions/upload-artifact@v6
         with:
-          files: |
+          name: fan-files-binaries
+          path: |
             bin/fan-files_linux_amd64
             bin/fan-files_linux_arm64
-          body_path: RELEASE_NOTES.md
-          generate_release_notes: true
+          if-no-files-found: error
 
-  docker:
+  publish-release:
+    name: 发布 Release (附带二进制)
+    needs: build-binaries
     runs-on: ubuntu-latest
-    needs: release
-    permissions:
-      contents: read
-      packages: write
-      attestations: write
-      id-token: write
+    timeout-minutes: 45
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ format('refs/tags/{0}', github.event.inputs.tag) }}
+
+      - name: Download binaries
+        if: needs.build-binaries.outputs.built == 'true'
+        uses: actions/download-artifact@v7
+        with:
+          name: fan-files-binaries
+          path: ./
+
+      - name: Prepare release body
+        run: |
+          if [ -f RELEASE_NOTES.md ]; then
+            cp RELEASE_NOTES.md _release_body.md
+          else
+            {
+              echo "Fan-Files ${{ env.RELEASE_TAG }}"
+              echo ""
+              echo "Docker 镜像："
+              echo "  - Docker Hub：docker pull ${{ env.DOCKERHUB_IMAGE }}:${{ env.RELEASE_TAG }}"
+              echo "  - GHCR：docker pull ${{ env.GHCR_IMAGE }}:${{ env.RELEASE_TAG }}"
+            } > _release_body.md
+          fi
+
+      - name: Create / update Release with binaries
+        run: |
+          TAG="${{ env.RELEASE_TAG }}"
+          gh release delete "$TAG" --yes 2>/dev/null || true
+          FILES=""
+          [ -f bin/fan-files_linux_amd64 ] && FILES="$FILES bin/fan-files_linux_amd64"
+          [ -f bin/fan-files_linux_arm64 ] && FILES="$FILES bin/fan-files_linux_arm64"
+          gh release create "$TAG" \
+            --title "Fan-Files $TAG" \
+            --notes-file _release_body.md \
+            $FILES
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-docker:
+    name: 构建推送 Docker 镜像 (Docker Hub + GHCR)
+    needs: publish-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ format('refs/tags/{0}', github.event.inputs.tag) }}
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
-      - name: Log into registry
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
         with:
-          registry: ${{ env.REGISTRY }}
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
-            type=semver,pattern={{version}},enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image
-        id: build-and-push
-        uses: docker/build-push-action@v6
+      - name: Compute image tags
+        id: tags
+        run: |
+          VER="${{ env.RELEASE_TAG }}"
+          VER_NO_V="${VER#v}"
+          TAGS="${{ env.DOCKERHUB_IMAGE }}:${VER},${{ env.DOCKERHUB_IMAGE }}:latest"
+          TAGS="${TAGS},${{ env.GHCR_IMAGE }}:${VER},${{ env.GHCR_IMAGE }}:${VER_NO_V}"
+          echo "tags=${TAGS}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push Docker images
+        uses: docker/build-push-action@v7
         with:
-          platforms: linux/amd64,linux/arm64
           context: .
+          platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.tags.outputs.tags }}
           build-args: |
             GIT_COMMIT=${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      - name: Generate artifact attestation
-        uses: actions/attest-build-provenance@v2
+  sync-cnb:
+    name: 同步到 CNB 镜像仓库
+    needs: build-docker
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
         with:
-          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
-          subject-digest: ${{ steps.build-and-push.outputs.digest }}
-          push-to-registry: true
+          fetch-depth: 0
+          ref: ${{ format('refs/tags/{0}', github.event.inputs.tag) }}
+
+      - name: Sync to CNB Repository
+        if: ${{ env.CNB_TOKEN != '' }}
+        env:
+          CNB_TOKEN: ${{ secrets.CNB_ACCESS_TOKEN }}
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:${{ github.workspace }} \
+            -w ${{ github.workspace }} \
+            -e PLUGIN_TARGET_URL="https://cnb.cool/meimolihan/fan-files.git" \
+            -e PLUGIN_AUTH_TYPE="https" \
+            -e PLUGIN_USERNAME="cnb" \
+            -e PLUGIN_PASSWORD="$CNB_TOKEN" \
+            -e PLUGIN_FORCE="true" \
+            -e PLUGIN_PUSH_TAGS="true" \
+            tencentcom/git-sync
+
+      - name: Skip CNB sync
+        if: ${{ env.CNB_TOKEN == '' }}
+        env:
+          CNB_TOKEN: ${{ secrets.CNB_ACCESS_TOKEN }}
+        run: echo "::warning::CNB_ACCESS_TOKEN 未配置，跳过同步到 CNB 镜像仓库"
