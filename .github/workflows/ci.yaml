@@ -7,13 +7,13 @@ on:
 jobs:
   lint-frontend:
     name: Lint Frontend
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v6
         with:
           package_json_file: "frontend/package.json"
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v5
         with:
           node-version: "24.x"
           cache: "pnpm"
@@ -25,13 +25,13 @@ jobs:
 
   test-frontend:
     name: Test Frontend
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v6
         with:
           package_json_file: "frontend/package.json"
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v5
         with:
           node-version: "24.x"
           cache: "pnpm"
@@ -43,9 +43,9 @@ jobs:
 
   lint-backend:
     name: Lint Backend
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v5
       - uses: actions/setup-go@v6
         with:
           go-version: "1.26.x"
@@ -55,9 +55,9 @@ jobs:
 
   test:
     name: Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v5
       - uses: actions/setup-go@v6
         with:
           go-version: "1.26.x"
@@ -65,9 +65,9 @@ jobs:
 
   build:
     name: Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - uses: actions/setup-go@v6
@@ -76,7 +76,7 @@ jobs:
       - uses: pnpm/action-setup@v6
         with:
           package_json_file: "frontend/package.json"
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v5
         with:
           node-version: "24.x"
           cache: "pnpm"
