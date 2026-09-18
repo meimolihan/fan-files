@@ -54,7 +54,7 @@ jobs:
           cache-dependency-path: frontend/pnpm-lock.yaml
 
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.26.x'
 
