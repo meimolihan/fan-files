@@ -10,9 +10,11 @@ services:
       - 8678:80
     volumes:
       - fan-files:/flux/vault
+      - /vol2/1000:/flux/vault2
     command:
       - --root=/flux/vault
     environment:
+      - FB_EXTRAROOTS=/flux/vault2:存储空间2
       - FB_REDIS_CACHE_URL=redis://default:fan-files@redis:6379 # Use rediss:// for ssl
       - HTTP_PROXY=http://10.10.10.252:7893
       - HTTPS_PROXY=http://10.10.10.252:7893
